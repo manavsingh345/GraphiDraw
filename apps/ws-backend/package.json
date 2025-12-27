@@ -14,11 +14,13 @@
     "jsonwebtoken": "^9.0.3",
     "ws": "^8.18.3"
   },
+  
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@repo/backend-common":"workspace:*",
     "@types/jsonwebtoken": "^9.0.10"
   }
 }
