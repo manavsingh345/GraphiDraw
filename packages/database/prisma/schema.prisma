@@ -14,16 +14,16 @@ model User {
   email     String  @unique
   password  String
   name      String
-  photo     String
+  photo     String?
 
   rooms     Room[]
   chats     Chat[]
 }
 
 model Room {
-  id          Int     @id @default(autoincrement())
-  slug        String  @unique
-  createdAt   DateTime @default(now())
+  id          Int       @id @default(autoincrement())
+  slug        String    @unique
+  createdAt   DateTime  @default(now())
   adminId     String
   admin       User      @relation(fields: [adminId],references: [id])  
   chats       Chat[]
