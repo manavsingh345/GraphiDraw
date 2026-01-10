@@ -10,7 +10,6 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "@repo/backend-common": "workspace:*",
     "@repo/typescript-config": "workspace:*"
   },
   "keywords": [],
