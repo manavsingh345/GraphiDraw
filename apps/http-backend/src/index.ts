@@ -3,10 +3,13 @@ import jwt from "jsonwebtoken"
 import {JWT_SECRET} from "@repo/backend-common/config";
 import { middleware } from "./middleware";
 import {CreateUserSchema,SigninSchema,CreateRoomSchema} from "@repo/common/types"
+import dotenv from "dotenv";
+dotenv.config();
 import {prismaClient} from "@repo/database/client"
 import bcrypt from "bcrypt";
 
 const app=express();
+app.use(express.json());
 
 
 app.post("/signup",async (req,res)=>{
@@ -18,8 +21,18 @@ app.post("/signup",async (req,res)=>{
         })
         
     }
-
     const {email,password,name,photo}=parsed.data;
+    const existingUser=await prismaClient.user.findFirst({
+        where:{
+            email:email
+        }
+    });
+    if(existingUser){
+        res.status(400).json({
+            message:"Email already exits"
+        })
+    }
+
     try{
         const hashedPassword=await bcrypt.hash(password,10);
         const user=await prismaClient.user.create({
@@ -27,7 +40,6 @@ app.post("/signup",async (req,res)=>{
                 email,
                 password:hashedPassword,
                 name,
-                //@ts-ignore
                 photo 
             }
         })
