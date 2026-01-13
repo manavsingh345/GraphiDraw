@@ -100,17 +100,31 @@ app.post("/signin",async (req,res)=>{
     }
 })
 
-app.post("/room",middleware,(req,res)=>{
-    const data = CreateRoomSchema.safeParse(req.body);
-    if(!data.success){
+app.post("/room",middleware,async (req,res)=>{
+    const parseddata = CreateRoomSchema.safeParse(req.body);
+    if(!parseddata.success){
         res.json({
             message:"Incorrect inputs"
         })
         return;
     }
-    //db call
-    res.json({
-        roomId:123
-    })
-})
+    // @ts-ignore
+    const userId=req.userId;
+    const {slug}=parseddata.data;
+    try{
+        const room=await prismaClient.room.create({
+            data:{
+                slug:slug,
+                adminId:userId
+            }
+        })
+        res.json({
+            roomId:room.id
+        })
+    }catch(e){
+        res.status(411).json({
+            message:"Room already exits with this name"
+        })
+    }
+});
 app.listen(3001);
