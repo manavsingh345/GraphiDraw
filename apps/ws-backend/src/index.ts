@@ -25,7 +25,7 @@ function checkUser(token:string): string | null{
     }
     return decoded.userId;
     }catch(err){
-        return "Invalid token"
+        return null;
     }
 }
 
@@ -53,14 +53,14 @@ wss.on('connection',function connection(ws,request){
         const parsedData=JSON.parse(data as unknown as string);
         if(parsedData.type === "join_room"){
             const user = users.find(x => x.ws ===ws);
-            user?.rooms.push(parsedData.userId);
+            user?.rooms.push(parsedData.roomId);
         }
         if(parsedData.type === "leave_room"){
             const user = users.find(x => x.ws ===ws);
             if(!user){
                 return;
             }
-            user.rooms =  user?.rooms.filter(x => x !== parsedData.room);
+            user.rooms =  user?.rooms.filter(x => x !== parsedData.roomId);
         }
         if(parsedData.type === "chat"){
             const roomId=parsedData.roomId;
