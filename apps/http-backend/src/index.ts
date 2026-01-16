@@ -127,4 +127,27 @@ app.post("/room",middleware,async (req,res)=>{
         })
     }
 });
+
+app.get("/chats/:roomId",async(req,res)=>{
+    const roomId=Number(req.params.roomId);
+    try{
+        const messages = await prismaClient.chat.findMany({
+                where:{
+                roomId:roomId
+                },
+                 orderBy:{
+                 id:"desc"
+                },
+                take:50
+        });
+        res.json({
+            message:messages
+        });
+    }catch(err){
+        res.status(411).json({
+            message:"Invlaid RoomId"
+        })
+    }
+    
+});
 app.listen(3001);
