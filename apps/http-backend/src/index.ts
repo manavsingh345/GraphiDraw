@@ -150,4 +150,22 @@ app.get("/chats/:roomId",async(req,res)=>{
     }
     
 });
+
+app.get("/room/:slug",async(req,res)=>{
+    const slug=req.params.slug;
+    try{
+        const room=await prismaClient.room.findFirst({
+        where:{
+            slug
+        }
+        });
+        res.json({
+            room
+        })
+    }catch(e){
+        res.status(404).json({
+            message:"Slug does not exits"
+        });
+    } 
+});
 app.listen(3001);
