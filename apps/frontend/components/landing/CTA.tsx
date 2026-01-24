@@ -6,7 +6,6 @@ const CTA = () => {
     <section className="py-24 px-6">
       <div className="container mx-auto max-w-4xl">
         <div className="relative bg-foreground text-background rounded-3xl p-12 md:p-16 text-center overflow-hidden">
-          {/* Decorative sketchy elements */}
           <div className="absolute top-6 left-6 w-12 h-12 border-2 border-background/20 rounded-lg rotate-12" />
           <div className="absolute bottom-8 right-8 w-16 h-16 border-2 border-background/20 rounded-full" />
           <div className="absolute top-1/2 right-12 w-8 h-8 bg-primary/30 rounded-lg -rotate-6 hidden md:block" />
@@ -26,7 +25,7 @@ const CTA = () => {
             <Button 
               variant="hero" 
               size="xl"
-              className="bg-background text-foreground hover:bg-background/90"
+              className="bg-background text-foreground hover:bg-background/90 w-50 cursor-pointer"
             >
               Start for Free
               <ArrowRight className="w-5 h-5" />

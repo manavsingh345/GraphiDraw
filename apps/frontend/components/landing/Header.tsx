@@ -9,7 +9,7 @@ const Header = () => {
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-sketch">
             <Pencil className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-display text-xl font-bold">Sketchboard</span>
+          <span className="font-display text-xl font-bold">GraphiDraw</span>
         </div>
         
         <nav className="hidden md:flex items-center gap-8">
@@ -25,10 +25,10 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="hover:bg-gray-200 w-18 h-8 rounded-xl hover:cursor-pointer">
             Sign in
           </Button>
-          <Button variant="default" size="sm">
+          <Button variant="default" size="sm" className="w-25 h-8 rounded-xl cursor-pointer">
             Get Started
           </Button>
         </div>

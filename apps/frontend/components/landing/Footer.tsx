@@ -9,7 +9,7 @@ const Footer = () => {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <Pencil className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-display text-lg font-bold">Sketchboard</span>
+            <span className="font-display text-lg font-bold">GraphiDraw</span>
           </div>
           
           <nav className="flex items-center gap-6 text-sm text-muted-foreground">
@@ -20,7 +20,7 @@ const Footer = () => {
           </nav>
           
           <p className="text-sm text-muted-foreground">
-            © 2024 Sketchboard. Made with ♥
+            © 2024 GraphiDraw. Made By Manav
           </p>
         </div>
       </div>

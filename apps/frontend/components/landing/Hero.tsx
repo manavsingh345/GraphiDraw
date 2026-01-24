@@ -25,11 +25,11 @@ const Hero = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button variant="hero" size="xl">
+            <Button variant="hero" size="xl" className="w-50 cursor-pointer">
               Start Drawing
               <ArrowRight className="w-5 h-5" />
             </Button>
-            <Button variant="hero-outline" size="xl">
+            <Button variant="hero-outline" size="xl" className="w-50 cursor-pointer">
               Watch Demo
             </Button>
           </div>
