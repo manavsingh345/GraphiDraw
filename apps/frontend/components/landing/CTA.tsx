@@ -1,6 +1,6 @@
 import { Button } from "@repo/ui/Bigbutton"
 import { ArrowRight, Pencil } from "lucide-react";
-
+import Link from "next/link"
 const CTA = () => {
   return (
     <section className="py-24 px-6">
@@ -22,14 +22,12 @@ const CTA = () => {
               Join thousands of teams who use Sketchboard to visualize ideas and collaborate in real-time.
             </p>
             
-            <Button 
-              variant="hero" 
-              size="xl"
-              className="bg-background text-foreground hover:bg-background/90 w-50 cursor-pointer"
-            >
+            <Link href="/signup">
+            <Button variant="hero" size="xl" className="bg-background text-foreground hover:bg-background/90 w-50 cursor-pointer">
               Start for Free
               <ArrowRight className="w-5 h-5" />
             </Button>
+            </Link>
           </div>
         </div>
       </div>

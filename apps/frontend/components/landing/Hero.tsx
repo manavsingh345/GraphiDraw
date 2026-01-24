@@ -2,6 +2,7 @@ import { Button } from "@repo/ui/Bigbutton"
 import { ArrowRight, Sparkles } from "lucide-react";
 import Image from "next/image";
 import heroImage from "@/public/hero-whiteboard.png";
+import Link from "next/link";
 
 const Hero = () => {
   return (
@@ -25,10 +26,12 @@ const Hero = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button variant="hero" size="xl" className="w-50 cursor-pointer">
-              Start Drawing
-              <ArrowRight className="w-5 h-5" />
-            </Button>
+            <Link href="/signup">
+              <Button variant="hero" size="xl" className="w-50 cursor-pointer">
+                Start Drawing
+                <ArrowRight className="w-5 h-5" />
+              </Button>
+            </Link>
             <Button variant="hero-outline" size="xl" className="w-50 cursor-pointer">
               Watch Demo
             </Button>

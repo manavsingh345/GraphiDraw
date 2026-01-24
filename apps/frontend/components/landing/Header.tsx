@@ -1,5 +1,6 @@
 import {Button} from "@repo/ui/Bigbutton"
 import { Pencil } from "lucide-react";
+import Link from "next/link"
 
 const Header = () => {
   return (
@@ -25,12 +26,17 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" className="hover:bg-gray-200 w-18 h-8 rounded-xl hover:cursor-pointer">
-            Sign in
-          </Button>
-          <Button variant="default" size="sm" className="w-25 h-8 rounded-xl cursor-pointer">
-            Get Started
-          </Button>
+          <Link href="/signin">
+            <Button variant="ghost" size="sm" className="hover:bg-gray-200 w-18 h-8 rounded-xl hover:cursor-pointer">
+              Sign in
+            </Button>
+          </Link>
+          
+          <Link href="/signup">
+            <Button variant="default" size="sm" className="w-25 h-8 rounded-xl cursor-pointer">
+              Get Started
+            </Button>
+          </Link>
         </div>
       </div>
     </header>
