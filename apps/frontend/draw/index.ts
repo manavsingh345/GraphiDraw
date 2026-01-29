@@ -2,9 +2,23 @@ function resize(canvas: HTMLCanvasElement) {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 }
+type Shape = {
+    type:"react";
+    x:number;
+    y:number;
+    width:number;
+    height:number;
+} | {
+    type:"circle";
+    centerX:number;
+    centerY:number;
+    radius:number;
+}
+
 
 export function initDraw(canvas: HTMLCanvasElement,ctx: CanvasRenderingContext2D){
   resize(canvas);
+  let existingShapes: Shape[] = [];
 
   const onResize = () => resize(canvas);
   window.addEventListener("resize", onResize);
@@ -23,13 +37,28 @@ export function initDraw(canvas: HTMLCanvasElement,ctx: CanvasRenderingContext2D
 
   const onMouseDown = (e: MouseEvent) => {
     clicked = true;
-    const pos = getPos(e);
-    startX = pos.x;
-    startY = pos.y;
+     const pos = getPos(e);
+     startX = pos.x;
+     startY = pos.y;
   };
 
-  const onMouseUp = () => {
+  const onMouseUp = (e:MouseEvent) => {
     clicked = false;
+
+    const pos = getPos(e);
+    const x = Math.min(startX,pos.x);
+    const y = Math.min(startY,pos.y);
+    const width = Math.abs(pos.x - startX);
+    const height = Math.abs(pos.y - startY);
+
+    existingShapes.push({
+      type:"react",
+      x:startX,
+      y:startY,
+      width,
+      height
+    });
+    
   };
 
   const onMouseMove = (e: MouseEvent) => {
@@ -38,11 +67,7 @@ export function initDraw(canvas: HTMLCanvasElement,ctx: CanvasRenderingContext2D
     const pos = getPos(e);
     const width = pos.x - startX;
     const height = pos.y - startY;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    clearCanvas(existingShapes,ctx,canvas);
     ctx.strokeStyle = "white";
     ctx.strokeRect(startX, startY, width, height);
   };
@@ -57,4 +82,16 @@ export function initDraw(canvas: HTMLCanvasElement,ctx: CanvasRenderingContext2D
     canvas.removeEventListener("mouseup", onMouseUp);
     canvas.removeEventListener("mousemove", onMouseMove);
   };
+}
+
+function clearCanvas(existingShapes:Shape[],ctx:CanvasRenderingContext2D,canvas:HTMLCanvasElement){
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        existingShapes.map((shape)=>{
+            if(shape.type==="react"){
+              ctx.strokeStyle = "white";
+              ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
+            }
+        })
 }
