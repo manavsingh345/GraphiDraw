@@ -7,9 +7,11 @@ import dotenv from "dotenv";
 dotenv.config();
 import {prismaClient} from "@repo/database/client"
 import bcrypt from "bcrypt";
+import cors from "cors";
 
 const app=express();
 app.use(express.json());
+app.use(cors())
 
 
 app.post("/signup",async (req,res)=>{
