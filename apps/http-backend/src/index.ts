@@ -143,7 +143,7 @@ app.get("/chats/:roomId",async(req,res)=>{
                 take:50
         });
         res.json({
-            message:messages
+            messages:messages
         });
     }catch(err){
         res.status(411).json({

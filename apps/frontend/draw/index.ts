@@ -23,7 +23,10 @@ export async function initDraw(canvas: HTMLCanvasElement,ctx: CanvasRenderingCon
   resize(canvas);
   let existingShapes: Shape[] = await getExistingShapes(roomId);
 
-  const onResize = () => resize(canvas);
+  const onResize = () =>{
+    resize(canvas);
+    clearCanvas(existingShapes,ctx,canvas);
+  } 
   window.addEventListener("resize", onResize);
 
   //socket logic 
@@ -36,7 +39,7 @@ export async function initDraw(canvas: HTMLCanvasElement,ctx: CanvasRenderingCon
       }
   }
 
-  clearCanvas(existingShapes,ctx,canvas);
+   clearCanvas(existingShapes,ctx,canvas);
   
   let clicked = false;
   let startX = 0;
@@ -128,7 +131,7 @@ async function getExistingShapes(roomId: string){
     }
     const shapes = messages.map((x:{message:string})=>{
         const messageData = JSON.parse(x.message);
-        return messageData;
+        return messageData.shape;
     })
     return shapes;
 }
