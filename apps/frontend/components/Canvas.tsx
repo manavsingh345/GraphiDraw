@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "./IconButton";
-import { Circle, Pencil, RectangleHorizontal, Text, TextAlignCenter, Trash } from "lucide-react";
+import { Circle, Hand, Pencil, RectangleHorizontal, Text, TextAlignCenter, Trash } from "lucide-react";
 import { Game } from "@/draw/Game";
 
 type CanvasProps = {
@@ -8,16 +8,24 @@ type CanvasProps = {
   socket: WebSocket;
 };
 
-export type Tool = "circle" | "rect" | "pencil" | "text" | "reset";
+export type Tool = "circle" | "rect" | "pencil" | "text" | "reset" | "hand";
 
 export function Canvas({ roomId, socket }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [game, setGame] = useState<Game | null>(null);
   const [selectedTool, setSelected] = useState<Tool>("pencil");
 
-  // tool sync
+  // tool sync and reset
   useEffect(() => {
-    game?.setTool(selectedTool);
+    if(!game) return;
+
+    if(selectedTool === 'reset'){
+      game.resetCanvas();
+      setSelected('pencil');
+      return;
+    }
+
+    game.setTool(selectedTool);
   }, [selectedTool, game]);
 
   // game init
@@ -32,6 +40,7 @@ export function Canvas({ roomId, socket }: CanvasProps) {
       g?.destroy?.(); //cleanup hook
     };
   }, [roomId, socket]);
+  
 
   return (
     <>
@@ -79,6 +88,12 @@ function ToolBar({
           icon={<Trash/>}
           active={selectedTool === "reset"}
         />
+        <IconButton
+          onClick={() => setSelected("hand")}
+          icon={<Hand />}   
+          active={selectedTool === "hand"}
+        />
+
       </div>
     </div>
   );
