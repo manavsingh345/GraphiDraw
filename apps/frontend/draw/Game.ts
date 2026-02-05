@@ -17,12 +17,10 @@ type Shape =
     }
   | {
       type: "pencil";
-      startX: number;
-      startY: number;
-      endX: number;
-      endY: number;
+      points: { x: number; y: number }[];
     };
 
+    
 export class Game {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -34,12 +32,14 @@ export class Game {
   private startX = 0;
   private startY = 0;
   private selectedTool: Tool = "circle";
+  private currentStroke: { x: number; y: number }[] = [];
 
-  constructor(
-    canvas: HTMLCanvasElement,
-    roomId: string,
-    socket: WebSocket
-  ) {
+
+  private onMouseDown!: (e: MouseEvent) => void;
+  private onMouseUp!: (e: MouseEvent) => void;
+  private onMouseMove!: (e: MouseEvent) => void;
+
+  constructor(canvas: HTMLCanvasElement,roomId: string,socket: WebSocket) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
     this.roomId = roomId;
@@ -47,14 +47,13 @@ export class Game {
 
     this.resize();
     window.addEventListener("resize", this.handleResize);
-
+    this.currentStroke=[]
     this.init();
     this.initHandlers();
     this.initMouseHandlers();
   }
 
-  /* -------------------- CANVAS SIZE -------------------- */
-
+  // CANVAS SIZE  
   private resize() {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
@@ -65,24 +64,20 @@ export class Game {
     this.clearCanvas();
   };
 
-  private onMouseDown!: (e: MouseEvent) => void;
-  private onMouseUp!: (e: MouseEvent) => void;
-  private onMouseMove!: (e: MouseEvent) => void;
-  /* -------------------- TOOL -------------------- */
+  
 
+  // TOOL or Shapes
   setTool(tool: Tool) {
     this.selectedTool = tool;
   }
 
-  /* -------------------- INIT -------------------- */
-
+  // init
   private async init() {
     this.existingShapes = await getExistingShapes(this.roomId);
     this.clearCanvas();
   }
 
-  /* -------------------- SOCKET -------------------- */
-
+  //SOCKET 
   private initHandlers() {
     this.socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
@@ -95,10 +90,9 @@ export class Game {
     };
   }
 
-  /* -------------------- DRAW -------------------- */
-
+  // DRAW 
   private clearCanvas() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); //Erase everything that previously drawn on the canvas.
     this.ctx.fillStyle = "black";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -123,11 +117,22 @@ export class Game {
         );
         this.ctx.stroke();
         this.ctx.closePath();
+      }else if(shape.type === "pencil"){
+        if (shape.points.length < 2) return;
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(shape.points[0].x, shape.points[0].y);
+
+        shape.points.forEach(p => {
+            this.ctx.lineTo(p.x, p.y);
+        });
+
+        this.ctx.stroke();
+        this.ctx.closePath();
       }
     });
   }
 
-  /* -------------------- MOUSE -------------------- */
 
   private initMouseHandlers() {
     const getPos = (e: MouseEvent) => {
@@ -143,6 +148,15 @@ export class Game {
       const pos = getPos(e);
       this.startX = pos.x;
       this.startY = pos.y;
+
+      if(this.selectedTool === 'pencil'){
+        this.currentStroke = [{ x: pos.x, y: pos.y }];
+        this.ctx.beginPath();
+        this.ctx.moveTo(pos.x,pos.y);
+
+        //styling
+        this.ctx.lineWidth = 2;
+      }
     };
 
     this.onMouseUp = (e: MouseEvent) => {
@@ -176,6 +190,17 @@ export class Game {
         };
       }
 
+      if (this.selectedTool === "pencil") {
+        this.ctx.closePath();
+
+        shape = {
+            type: "pencil",
+            points: this.currentStroke,
+        };
+        this.currentStroke = []; // reset for next stroke
+      }
+
+
       if (!shape) return;
 
       this.existingShapes.push(shape);
@@ -196,6 +221,14 @@ export class Game {
       if (!this.clicked) return;
 
       const pos = getPos(e);
+      if(this.selectedTool === 'pencil'){
+        this.ctx.lineTo(pos.x,pos.y);
+        this.ctx.stroke()
+        this.currentStroke.push({ x: pos.x, y: pos.y });
+        return;
+      }
+
+
       this.clearCanvas();
       this.ctx.strokeStyle = "white";
 
@@ -220,6 +253,9 @@ export class Game {
         this.ctx.stroke();
         this.ctx.closePath();
       }
+
+      
+
     };
 
     this.canvas.addEventListener("mousedown", this.onMouseDown);
