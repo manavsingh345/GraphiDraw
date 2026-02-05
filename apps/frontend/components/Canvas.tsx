@@ -1,56 +1,75 @@
-import { initDraw } from "@/draw";
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "./IconButton";
-import { Circle, Pencil, RectangleEllipsis, RectangleHorizontal, RectangleVertical } from "lucide-react";
+import { Circle, Pencil, RectangleHorizontal } from "lucide-react";
+import { Game } from "@/draw/Game";
 
 type CanvasProps = {
   roomId: string;
-  socket:WebSocket;
+  socket: WebSocket;
 };
-type Shape= "circle" | "rect" | "pencil";
 
-export function Canvas({ roomId,socket }: CanvasProps){
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [selectedTool,setSelected] = useState<Shape>("circle");
+export type Tool = "circle" | "rect" | "pencil";
 
-    useEffect(()=>{
-        //@ts-ignore
-        window.selectedTool=selectedTool;
-    },[selectedTool]);
+export function Canvas({ roomId, socket }: CanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [game, setGame] = useState<Game | null>(null);
+  const [selectedTool, setSelected] = useState<Tool>("circle");
 
-    useEffect(() => {
-        if (!canvasRef.current) return;
+  /* tool sync */
+  useEffect(() => {
+    game?.setTool(selectedTool);
+  }, [selectedTool, game]);
 
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
+  /* game init */
+  useEffect(() => {
+    if (!canvasRef.current) return;
 
-        let cleanup: (() => void) | undefined;
+    const canvas = canvasRef.current;
+    const g = new Game(canvas, roomId, socket);
+    setGame(g);
 
-        const setup = async () => {
-        cleanup = await initDraw(canvas, ctx, roomId,socket); 
-        };
+    return () => {
+      g?.destroy?.(); // optional cleanup hook
+    };
+  }, [roomId, socket]);
 
-        setup();
-
-        return () => {
-        cleanup?.();
-        };
-    }, [roomId,socket]); 
-    return (
-        <>
-            <canvas ref={canvasRef}/>
-            <ToopBar setSelected={setSelected} selectedTool={selectedTool}/>
-        </>
-    )
+  return (
+    <>
+      <canvas
+        ref={canvasRef}
+        className="fixed inset-0 block"
+      />
+      <ToolBar selectedTool={selectedTool} setSelected={setSelected} />
+    </>
+  );
 }
 
-function ToopBar({selectedTool,setSelected}:{selectedTool:Shape,setSelected:(s:Shape)=>void}){
-  return <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-white flex justify-center items-center">
-          <div className="flex gap-2">
-          <IconButton onClick={()=>{setSelected("pencil")}} icon={<Pencil/>} active={selectedTool==="pencil"}/>
-          <IconButton onClick={()=>{setSelected("circle")}} icon={<Circle/>} active={selectedTool==="circle"}/>
-          <IconButton onClick={()=>{setSelected("rect")}} icon={<RectangleHorizontal/>} active={selectedTool==="rect"}/>
-          </div>
+function ToolBar({
+  selectedTool,
+  setSelected,
+}: {
+  selectedTool: Tool;
+  setSelected: (s: Tool) => void;
+}) {
+  return (
+    <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-white rounded-md shadow px-2 py-1">
+      <div className="flex gap-2">
+        <IconButton
+          onClick={() => setSelected("pencil")}
+          icon={<Pencil />}
+          active={selectedTool === "pencil"}
+        />
+        <IconButton
+          onClick={() => setSelected("circle")}
+          icon={<Circle />}
+          active={selectedTool === "circle"}
+        />
+        <IconButton
+          onClick={() => setSelected("rect")}
+          icon={<RectangleHorizontal />}
+          active={selectedTool === "rect"}
+        />
       </div>
+    </div>
+  );
 }
