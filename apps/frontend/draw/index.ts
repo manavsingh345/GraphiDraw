@@ -1,12 +1,13 @@
 import { HTTP_BACKEND } from "@/config";
 import axios from "axios";
+import { start } from "repl";
 
 function resize(canvas: HTMLCanvasElement) {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 }
 type Shape = {
-    type:"react";
+    type:"rect";
     x:number;
     y:number;
     width:number;
@@ -16,6 +17,12 @@ type Shape = {
     centerX:number;
     centerY:number;
     radius:number;
+} | {
+    type:"pencil";
+    startX:number;
+    startY:number;
+    endX:number;
+    endY:number;
 }
 
 
@@ -69,14 +76,36 @@ export async function initDraw(canvas: HTMLCanvasElement,ctx: CanvasRenderingCon
     const width = Math.abs(pos.x - startX);
     const height = Math.abs(pos.y - startY);
 
-    const shape:Shape = {
-        type:"react",
+    // @ts-ignore
+    const selectedTool=window.selectedTool;
+    let shape: Shape | null = null;
+    if(selectedTool==='rect'){
+      shape = { 
+        type:'rect',
         x:startX,
         y:startY,
         width,
         height
+      }
+    }else if(selectedTool==='circle'){
+      const x = Math.min(startX,pos.x);
+      const y = Math.min(startY,pos.y);
+      const w = Math.abs(pos.x - startX);
+      const h = Math.abs(pos.y - startY);
+
+      const radius=Math.max(w,h)/2;
+       shape = { 
+        type:'circle',
+        radius:radius,
+        centerX:x + radius,
+        centerY:y + radius,
+      }
+      
     }
+
+    if(!shape) return;
     existingShapes.push(shape);
+
     if(socket.readyState === WebSocket.OPEN){
     socket.send(JSON.stringify({
       type:"chat",
@@ -94,7 +123,25 @@ export async function initDraw(canvas: HTMLCanvasElement,ctx: CanvasRenderingCon
     const height = pos.y - startY;
     clearCanvas(existingShapes,ctx,canvas);
     ctx.strokeStyle = "white";
-    ctx.strokeRect(startX, startY, width, height);
+    //@ts-ignore
+    const selectedTool=window.selectedTool;
+    if(selectedTool==='rect'){
+      ctx.strokeRect(startX, startY, width, height);
+    }else if(selectedTool === 'circle'){
+      const x = Math.min(startX,pos.x);
+      const y = Math.min(startY,pos.y);
+      const w = Math.abs(pos.x - startX);
+      const h = Math.abs(pos.y - startY);
+
+      const radius = Math.max(w,h)/2;
+      const centerX = x + radius;
+      const centerY = y + radius;
+      ctx.beginPath();
+      ctx.arc(centerX,centerY,radius,0,Math.PI * 2);
+      ctx.stroke();
+      ctx.closePath();
+    }
+    
   };
 
   canvas.addEventListener("mousedown", onMouseDown);
@@ -114,9 +161,14 @@ function clearCanvas(existingShapes:Shape[]=[],ctx:CanvasRenderingContext2D,canv
         ctx.fillStyle = "black";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         existingShapes.map((shape)=>{
-            if(shape.type==="react"){
+            if(shape.type==="rect"){
               ctx.strokeStyle = "white";
               ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
+            }else if(shape.type === 'circle'){
+              ctx.beginPath();
+              ctx.arc(shape.centerX,shape.centerY,shape.radius,0,Math.PI * 2);
+              ctx.stroke();
+              ctx.closePath();
             }
         })
 }
