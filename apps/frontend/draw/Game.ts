@@ -18,7 +18,16 @@ type Shape =
   | {
       type: "pencil";
       points: { x: number; y: number }[];
-    };
+    }
+  | {
+    type:"text",
+    x:number;
+    y:number;
+    text:string;
+    fontSize:number;
+    fontFamily:'Cursive';
+    fontWeight: 300;
+  };
 
     
 export class Game {
@@ -32,12 +41,18 @@ export class Game {
   private startX = 0;
   private startY = 0;
   private selectedTool: Tool = "circle";
-  private currentStroke: { x: number; y: number }[] = [];
+  private currentStroke: { x: number; y: number }[] = [];    //for pencil
+  private activeTextIndex: number | null = null;             //for text
+  private isTyping = false;
+  private showCursor = true;                                //for text blinking cursor
+  private cursorInterval: number | null = null;
+
 
 
   private onMouseDown!: (e: MouseEvent) => void;
   private onMouseUp!: (e: MouseEvent) => void;
   private onMouseMove!: (e: MouseEvent) => void;
+  
 
   constructor(canvas: HTMLCanvasElement,roomId: string,socket: WebSocket) {
     this.canvas = canvas;
@@ -47,6 +62,7 @@ export class Game {
 
     this.resize();
     window.addEventListener("resize", this.handleResize);
+    window.addEventListener("keydown", this.handleKeyDown);
     this.currentStroke=[]
     this.init();
     this.initHandlers();
@@ -100,21 +116,10 @@ export class Game {
 
     this.existingShapes.forEach((shape) => {
       if (shape.type === "rect") {
-        this.ctx.strokeRect(
-          shape.x,
-          shape.y,
-          shape.width,
-          shape.height
-        );
+        this.ctx.strokeRect(shape.x,shape.y,shape.width,shape.height);
       } else if (shape.type === "circle") {
         this.ctx.beginPath();
-        this.ctx.arc(
-          shape.centerX,
-          shape.centerY,
-          shape.radius,
-          0,
-          Math.PI * 2
-        );
+        this.ctx.arc(shape.centerX,shape.centerY,shape.radius,0,Math.PI * 2);
         this.ctx.stroke();
         this.ctx.closePath();
       }else if(shape.type === "pencil"){
@@ -129,6 +134,18 @@ export class Game {
 
         this.ctx.stroke();
         this.ctx.closePath();
+      }else if(shape.type === "text"){
+        this.ctx.font = `${shape.fontSize}px ${shape.fontFamily} ${shape.fontWeight}`;
+        this.ctx.fillStyle="white";
+        this.ctx.textBaseline = "top";
+        let displayText = shape.text;
+
+      if (this.isTyping && this.activeTextIndex !== null && shape === this.existingShapes[this.activeTextIndex] && this.showCursor) {
+        displayText += "|";
+      }
+
+        this.ctx.fillText(displayText, shape.x, shape.y);
+        this.ctx.fillText(shape.text,shape.x,shape.y);
       }
     });
   }
@@ -157,7 +174,26 @@ export class Game {
         //styling
         this.ctx.lineWidth = 2;
       }
+      if(this.selectedTool === 'text'){
+        const textShape: Shape = {
+        type: "text",
+        x: pos.x,
+        y: pos.y,
+        text: "",
+        fontSize: 20,
+        fontFamily: "Cursive",
+        fontWeight: 300
+      };
+
+        this.existingShapes.push(textShape);
+        this.activeTextIndex = this.existingShapes.length - 1;
+        this.isTyping = true;
+        this.startCursorBlink();
+        this.clearCanvas();
+      }
     };
+
+    
 
     this.onMouseUp = (e: MouseEvent) => {
       if (!this.clicked) return;
@@ -206,6 +242,7 @@ export class Game {
       this.existingShapes.push(shape);
       this.clearCanvas();
 
+      //  Send Shape data TO DB
       if (this.socket.readyState === WebSocket.OPEN) {
         this.socket.send(
           JSON.stringify({
@@ -263,8 +300,62 @@ export class Game {
     this.canvas.addEventListener("mousemove", this.onMouseMove);
   }
 
+  //for text 
+  private handleKeyDown = (e: KeyboardEvent) => {
+      if (!this.isTyping || this.activeTextIndex === null) return;
+
+      const shape = this.existingShapes[this.activeTextIndex];
+      if (shape.type !== "text") return;
+
+      if (e.key === "Enter") {
+        const shape = this.existingShapes[this.activeTextIndex];
+        this.isTyping = false;
+        this.activeTextIndex = null;
+        this.stopCursorBlink();
+
+        //  SEND TEXT TO DB
+        if (this.socket.readyState === WebSocket.OPEN) {
+          this.socket.send(
+            JSON.stringify({
+              type: "chat",
+              roomId: Number(this.roomId),
+              message: JSON.stringify({ shape }),
+            })
+          );
+        }
+        return;
+      }
+
+      if (e.key === "Backspace") {
+        shape.text = shape.text.slice(0, -1);
+      } else if (e.key.length === 1) {
+        shape.text += e.key;
+      }
+
+      this.clearCanvas();
+  };
+
+  private startCursorBlink() {
+    if (this.cursorInterval) return;
+
+    this.cursorInterval = window.setInterval(() => {
+      this.showCursor = !this.showCursor;
+      this.clearCanvas();
+    }, 500);
+  }
+
+  private stopCursorBlink() {
+    if (this.cursorInterval) {
+      clearInterval(this.cursorInterval);
+      this.cursorInterval = null;
+    }
+    this.showCursor = false;
+  }
+
+
   destroy() {
     window.removeEventListener("resize", this.handleResize);
+    window.removeEventListener("keydown", this.handleKeyDown);
     this.canvas.removeEventListener("mousedown", this.onMouseDown);
     this.canvas.removeEventListener("mouseup", this.onMouseUp);
     this.canvas.removeEventListener("mousemove", this.onMouseMove);
