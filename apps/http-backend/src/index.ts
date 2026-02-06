@@ -153,6 +153,34 @@ app.get("/chats/:roomId",async(req,res)=>{
     
 });
 
+app.delete("/chats/:roomId", async (req, res) => {
+  const roomId = Number(req.params.roomId);
+
+  if (isNaN(roomId)) {
+    return res.status(400).json({
+      message: "Invalid roomId",
+    });
+  }
+
+  try {
+    await prismaClient.chat.deleteMany({
+      where: {
+        roomId: roomId,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: "Chats deleted for room",
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to reset room",
+    });
+  }
+});
+
+
 app.get("/room/:slug",async(req,res)=>{
     const slug=req.params.slug;
     try{
