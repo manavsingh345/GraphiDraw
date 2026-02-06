@@ -91,5 +91,21 @@ wss.on('connection',function connection(ws,request){
             
         }
 
+        if (parsedData.type === "reset") {
+            const roomId = parsedData.roomId;
+
+            // broadcast reset to all users in this room
+            users.forEach((user) => {
+                if (user.rooms.includes(roomId)) {
+                user.ws.send(
+                    JSON.stringify({
+                    type: "reset",
+                    roomId,
+                    })
+                );
+                }
+            });
+             return;
+            }
     });   
 }) 
