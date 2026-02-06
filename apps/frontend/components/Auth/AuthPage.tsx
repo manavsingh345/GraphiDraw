@@ -1,31 +1,77 @@
 "use client";
 import { useState } from "react";
-import Link from 'next/link'
-import { Button } from "@repo/ui/Bigbutton"
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@repo/ui/Bigbutton";
 import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
 import { Checkbox } from "@repo/ui/checkbox";
 import { Pencil, Eye, EyeOff } from "lucide-react";
+import { HTTP_BACKEND } from "@/config";
 
 type AuthPageProps = {
   type: "signin" | "signup";
 };
 
 const AuthPage = ({ type }: AuthPageProps) => {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Frontend only - no actual auth
-    console.log("Sign in attempt:", { email, rememberMe });
+    setError("");
+    setLoading(true);
+
+    try {
+      if (type === "signup") {
+        const signupRes = await fetch(`${HTTP_BACKEND}/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            name,
+          }),
+        });
+        const signupData = await signupRes.json();
+        if (!signupRes.ok) {
+          throw new Error(signupData.message ?? "Sign up failed");
+        }
+      }
+
+      const signinRes = await fetch(`${HTTP_BACKEND}/signin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const signinData = await signinRes.json();
+      if (!signinRes.ok) {
+        throw new Error(signinData.message ?? "Sign in failed");
+      }
+
+      localStorage.setItem("token", signinData.token);
+      if (rememberMe) {
+        localStorage.setItem("rememberMe", "true");
+      } else {
+        localStorage.removeItem("rememberMe");
+      }
+
+      router.push("/rooms");
+    } catch (err: any) {
+      setError(err?.message ?? "Authentication failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Left side - Illustration */}
       <div className="hidden lg:flex lg:w-1/2 bg-primary/5 items-center justify-center p-12">
         <div className="max-w-md text-center">
           <div className="w-32 h-32 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-sketch sketch-border">
@@ -33,10 +79,10 @@ const AuthPage = ({ type }: AuthPageProps) => {
           </div>
           <h2 className="font-display text-3xl font-bold mb-4">Welcome back to GraphiDraw</h2>
           <p className="text-muted-foreground text-lg">
-            Your ideas are waiting. {type === "signin" ? "Sign in" : "Sign up"} to continue creating and collaborating on your sketches.
+            Your ideas are waiting. {type === "signin" ? "Sign in" : "Sign up"} to continue creating and collaborating on
+            your sketches.
           </p>
-          
-          {/* Decorative sketchy elements */}
+
           <div className="mt-12 flex justify-center gap-4">
             <div className="w-16 h-16 bg-accent/20 rounded-lg sketch-border rotate-3" />
             <div className="w-12 h-12 bg-primary/20 rounded-full sketch-border -rotate-6" />
@@ -45,10 +91,8 @@ const AuthPage = ({ type }: AuthPageProps) => {
         </div>
       </div>
 
-      {/* Right side - Form */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-md">
-          {/* Mobile logo */}
           <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-sketch">
               <Pencil className="w-5 h-5 text-primary-foreground" />
@@ -60,14 +104,32 @@ const AuthPage = ({ type }: AuthPageProps) => {
             <div className="text-center mb-8">
               <h1 className="font-display text-2xl font-bold mb-2">{type === "signin" ? "Sign In" : "Sign Up"}</h1>
               <p className="text-muted-foreground">
-                Don't have an account?{" "}
-                <Link href="/signup" className="text-primary hover:underline font-medium">
-                  {type === "signin" ? "Sign In" : "Sign Up"}
+                {type === "signin" ? "Don't have an account?" : "Already have an account?"}{" "}
+                <Link
+                  href={type === "signin" ? "/signup" : "/signin"}
+                  className="text-primary hover:underline font-medium"
+                >
+                  {type === "signin" ? "Sign Up" : "Sign In"}
                 </Link>
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
+              {type === "signup" && (
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="sketch-border bg-background"
+                    required
+                  />
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -92,7 +154,7 @@ const AuthPage = ({ type }: AuthPageProps) => {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder="********"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="sketch-border bg-background pr-10"
@@ -108,6 +170,12 @@ const AuthPage = ({ type }: AuthPageProps) => {
                 </div>
               </div>
 
+              {error && (
+                <p className="text-sm text-red-600" role="alert">
+                  {error}
+                </p>
+              )}
+
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="remember"
@@ -119,8 +187,8 @@ const AuthPage = ({ type }: AuthPageProps) => {
                 </Label>
               </div>
 
-              <Button type="submit" className="w-full" variant="hero">
-                {type === "signin" ? "Sign In" : "Sign Up"}
+              <Button type="submit" className="w-full" variant="hero" disabled={loading}>
+                {loading ? "Please wait..." : type === "signin" ? "Sign In" : "Sign Up"}
               </Button>
             </form>
 

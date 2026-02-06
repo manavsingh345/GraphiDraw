@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "./IconButton";
-import { Circle, Hand, Pencil, RectangleHorizontal, Text, TextAlignCenter, Trash } from "lucide-react";
+import { Circle, Hand, MousePointer2, Pencil, RectangleHorizontal, Text, TextAlignCenter, Trash } from "lucide-react";
 import { Game } from "@/draw/Game";
 
 type CanvasProps = {
@@ -8,7 +8,7 @@ type CanvasProps = {
   socket: WebSocket;
 };
 
-export type Tool = "circle" | "rect" | "pencil" | "text" | "reset" | "hand";
+export type Tool = "circle" | "rect" | "pencil" | "text" | "reset" | "hand" | "select";
 
 export function Canvas({ roomId, socket }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -93,7 +93,11 @@ function ToolBar({
           icon={<Hand />}   
           active={selectedTool === "hand"}
         />
-
+        <IconButton
+          onClick={() => setSelected("select")}
+          icon={<MousePointer2 />}   
+          active={selectedTool === "select"}
+        />
       </div>
     </div>
   );
