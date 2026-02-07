@@ -10,10 +10,9 @@ export default function GraphiBar({strokeColor,setStrokeColor,fillColor,setFillC
   setFillColor: (color: string) => void;
 }) {
   return (
-    <div className="bg-yellow-200 h-1/2 w-1/7 left-2 top-20 fixed z-10 rounded-2xl">
-      <div className="w-full pt-2">
+    <div className="h-1/2 w-1/7 left-4 top-20 fixed z-10 rounded-2xl" style={{backgroundColor:"#FAF7F7"}}>
+      <div className="w-full pt-3">
         <span className="pl-3 text-md">Stroke</span>
-
         <div className="px-3 pt-2 flex gap-2 flex-wrap">
           {strokeColors.map((color) => (
             <StrokeColor
@@ -26,7 +25,8 @@ export default function GraphiBar({strokeColor,setStrokeColor,fillColor,setFillC
           ))}
         </div>
 
-        <span className="pl-3 text-md">Fill</span>
+        <div className="pt-4">
+        <span className="pl-3 text-md">Background</span>
         <div className="px-3 pt-2 flex gap-2 flex-wrap">
           {fillColors.map((color) => (
             <StrokeColor
@@ -38,7 +38,7 @@ export default function GraphiBar({strokeColor,setStrokeColor,fillColor,setFillC
             />
           ))}
         </div>
-
+        </div>
       </div>
     </div>
   );
