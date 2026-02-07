@@ -9,16 +9,21 @@ type Shape =
       y: number;
       width: number;
       height: number;
+      strokeColor?: string;
+      fillColor?: string;
     }
   | {
       type: "circle";
       centerX: number;
       centerY: number;
       radius: number;
+      strokeColor?: string;
+      fillColor?: string;
     }
   | {
       type: "pencil";
       points: { x: number; y: number }[];
+      strokeColor?: string;
     }
   | {
     type:"text",
@@ -28,6 +33,7 @@ type Shape =
     fontSize:number;
     fontFamily:string;
     fontWeight: 300;
+    strokeColor?: string;
   };
 
     
@@ -48,6 +54,8 @@ export class Game {
   private isTyping = false;
   private showCursor = true;                                //for text blinking cursor
   private cursorInterval: number | null = null;
+  private strokeColor = "#A84D00";
+  private fillColor = "transparent";
 
   private cameraX = 0;         //cameraX,cameraY,lastPanX,lastPanY  for infinite canvas
   private cameraY = 0;
@@ -114,6 +122,16 @@ export class Game {
     }
   }
 
+  setStrokeColor(color: string) {
+    this.strokeColor = color;
+    this.clearCanvas();
+  }
+
+  setFillColor(color: string) {
+    this.fillColor = color;
+    this.clearCanvas();
+  }
+
   // init
   private async init() {
     this.existingShapes = await getExistingShapes(this.roomId);
@@ -173,15 +191,24 @@ export class Game {
     this.ctx.save();
     this.ctx.translate(this.cameraX, this.cameraY);
 
-
-    this.ctx.strokeStyle = "#A84D00";
-
     this.existingShapes.forEach((shape) => {
+      
+      const stroke = shape.strokeColor ?? this.strokeColor;
+      this.ctx.strokeStyle = stroke;
+
       if (shape.type === "rect") {
+        if (shape.fillColor && shape.fillColor !== "transparent") {
+          this.ctx.fillStyle = shape.fillColor;
+          this.ctx.fillRect(shape.x, shape.y, shape.width, shape.height);
+        }
         this.ctx.strokeRect(shape.x,shape.y,shape.width,shape.height);
       } else if (shape.type === "circle") {
         this.ctx.beginPath();
         this.ctx.arc(shape.centerX,shape.centerY,shape.radius,0,Math.PI * 2);
+        if (shape.fillColor && shape.fillColor !== "transparent") {
+          this.ctx.fillStyle = shape.fillColor;
+          this.ctx.fill();
+        }
         this.ctx.stroke();
         this.ctx.closePath();
       }else if(shape.type === "pencil"){
@@ -198,7 +225,7 @@ export class Game {
         this.ctx.closePath();
       }else if(shape.type === "text"){
         this.ctx.font = `${shape.fontWeight} ${shape.fontSize}px ${shape.fontFamily}`;
-        this.ctx.fillStyle="#A84D00";
+        this.ctx.fillStyle = stroke;
         this.ctx.textBaseline = "top";
         let displayText = shape.text;
 
@@ -212,6 +239,7 @@ export class Game {
 
     //draw active pencil stroke fixed with pan everywhere in world draw not break imp.
     if (this.selectedTool === "pencil" && this.currentStroke.length > 1) {
+        this.ctx.strokeStyle = this.strokeColor;
         this.ctx.beginPath();
         this.ctx.moveTo(this.currentStroke[0].x, this.currentStroke[0].y);
 
@@ -225,8 +253,13 @@ export class Game {
     //same for rect and circle
     if (this.draftShape) {
         const shape = this.draftShape;
+        this.ctx.strokeStyle = shape.strokeColor ?? this.strokeColor;
 
         if (shape.type === "rect") {
+          if (shape.fillColor && shape.fillColor !== "transparent") {
+            this.ctx.fillStyle = shape.fillColor;
+            this.ctx.fillRect(shape.x, shape.y, shape.width, shape.height);
+          }
           this.ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
         }
 
@@ -239,6 +272,10 @@ export class Game {
             0,
             Math.PI * 2
           );
+          if (shape.fillColor && shape.fillColor !== "transparent") {
+            this.ctx.fillStyle = shape.fillColor;
+            this.ctx.fill();
+          }
           this.ctx.stroke();
           this.ctx.closePath();
         }
@@ -300,7 +337,8 @@ export class Game {
         text: "",
         fontSize: 20,
         fontFamily: "Cursive, Arial, sans-serif",
-        fontWeight: 300
+        fontWeight: 300,
+        strokeColor: this.strokeColor
       };
 
         this.existingShapes.push(textShape);
@@ -356,6 +394,7 @@ export class Game {
         shape = {
             type: "pencil",
             points: this.currentStroke,
+            strokeColor: this.strokeColor
         };
         this.currentStroke = []; // reset for next stroke
       }
@@ -429,7 +468,15 @@ export class Game {
         const width = Math.abs(pos.x - this.startX);
         const height = Math.abs(pos.y - this.startY);
 
-        this.draftShape = { type: "rect", x, y, width, height };
+        this.draftShape = {
+          type: "rect",
+          x,
+          y,
+          width,
+          height,
+          strokeColor: this.strokeColor,
+          fillColor: this.fillColor,
+        };
         this.clearCanvas();
         return;
       }
@@ -446,6 +493,8 @@ export class Game {
           centerX: x + radius,
           centerY: y + radius,
           radius,
+          strokeColor: this.strokeColor,
+          fillColor: this.fillColor,
         };
         this.clearCanvas();
         return;

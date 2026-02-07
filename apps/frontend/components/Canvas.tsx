@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { IconButton } from "./IconButton";
-import { Circle, Hand, MousePointer2, Pencil, RectangleHorizontal, Text, TextAlignCenter, Trash } from "lucide-react";
 import { Game } from "@/draw/Game";
+import ToolBar from "./ToolBar";
+import GraphiBar from "./GraphiBar";
+
 
 type CanvasProps = {
   roomId: string;
@@ -13,7 +14,9 @@ export type Tool = "circle" | "rect" | "pencil" | "text" | "reset" | "hand" | "s
 export function Canvas({ roomId, socket }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [game, setGame] = useState<Game | null>(null);
-  const [selectedTool, setSelected] = useState<Tool>("pencil");
+  const [selectedTool, setSelected] = useState<Tool>("select");
+  const [strokeColor, setStrokeColor] = useState("#A84D00");
+  const [fillColor, setFillColor] = useState("transparent");
 
   // tool sync and reset
   useEffect(() => {
@@ -21,12 +24,22 @@ export function Canvas({ roomId, socket }: CanvasProps) {
 
     if(selectedTool === 'reset'){
       game.resetCanvas();
-      setSelected('pencil');
+      setSelected('select');
       return;
     }
 
     game.setTool(selectedTool);
   }, [selectedTool, game]);
+
+  useEffect(() => {
+    if (!game) return;
+    game.setStrokeColor(strokeColor);
+  }, [strokeColor, game]);
+
+  useEffect(() => {
+    if (!game) return;
+    game.setFillColor(fillColor);
+  }, [fillColor, game]);
 
   // game init
   useEffect(() => {
@@ -44,6 +57,12 @@ export function Canvas({ roomId, socket }: CanvasProps) {
 
   return (
     <>
+      <GraphiBar
+        strokeColor={strokeColor}
+        setStrokeColor={setStrokeColor}
+        fillColor={fillColor}
+        setFillColor={setFillColor}
+      />
       <canvas
         ref={canvasRef}
         className="fixed inset-0 block"
@@ -53,61 +72,4 @@ export function Canvas({ roomId, socket }: CanvasProps) {
   );
 }
 
-function ToolBar({
-  selectedTool,
-  setSelected,
-}: {
-  selectedTool: Tool;
-  setSelected: (s: Tool) => void;
-}) {
-  return (
-    <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-white rounded-md shadow px-2 py-1">
-      <div className="flex gap-2">
-        <IconButton
-          onClick={() => setSelected("select")}
-          icon={<MousePointer2 />}
-          label="Select"
-          active={selectedTool === "select"}
-        />
-        <IconButton
-          onClick={() => setSelected("hand")}
-          icon={<Hand />}
-          label="Hand"
-          active={selectedTool === "hand"}
-        />
-        <IconButton
-          onClick={() => setSelected("pencil")}
-          icon={<Pencil />}
-          label="Pencil"
-          active={selectedTool === "pencil"}
-        />
-        <IconButton
-          onClick={() => setSelected("circle")}
-          icon={<Circle />}
-          label="Circle"
-          active={selectedTool === "circle"}
-        />
-        <IconButton
-          onClick={() => setSelected("rect")}
-          icon={<RectangleHorizontal />}
-          label="Rectangle"
-          active={selectedTool === "rect"}
-        />
-        <IconButton
-          onClick={() => setSelected("text")}
-          icon={<Text/>}
-          label="Text"
-          active={selectedTool === "text"}
-        />
-        <IconButton
-          onClick={() => setSelected("reset")}
-          icon={<Trash/>}
-          label="Reset"
-          active={selectedTool === "reset"}
-        />
-        
-        
-      </div>
-    </div>
-  );
-}
+
