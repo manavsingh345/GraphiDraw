@@ -54,7 +54,8 @@ export class Game {
   private isTyping = false;
   private showCursor = true;                                //for text blinking cursor
   private cursorInterval: number | null = null;
-  private strokeColor = "#A84D00";
+
+  private strokeColor = "#A84D00";   
   private fillColor = "transparent";
 
   private cameraX = 0;         //cameraX,cameraY,lastPanX,lastPanY  for infinite canvas
@@ -166,17 +167,17 @@ export class Game {
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    this.ctx.fillStyle = "#ffe9d6";
+    this.ctx.fillStyle = "#FFFFFF";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     //for dots bg canvas
-    const dotSize = 2;
+    const dotSize = 1.5;
     const dotGap = 18;
     const dotCanvas = document.createElement("canvas");
     dotCanvas.width = dotGap;
     dotCanvas.height = dotGap;
     const dotCtx = dotCanvas.getContext("2d");
     if (dotCtx) {
-      dotCtx.fillStyle = "rgba(255, 140, 0, 0.25)";
+      dotCtx.fillStyle = "#F2F2EB";
       dotCtx.beginPath();
       dotCtx.arc(dotGap / 2, dotGap / 2, dotSize, 0, Math.PI * 2);
       dotCtx.fill();
