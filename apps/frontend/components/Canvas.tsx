@@ -65,37 +65,44 @@ function ToolBar({
       <div className="flex gap-2">
         <IconButton
           onClick={() => setSelected("select")}
-          icon={<MousePointer2 />}   
+          icon={<MousePointer2 />}
+          label="Select"
           active={selectedTool === "select"}
         />
         <IconButton
           onClick={() => setSelected("hand")}
-          icon={<Hand />}   
+          icon={<Hand />}
+          label="Hand"
           active={selectedTool === "hand"}
         />
         <IconButton
           onClick={() => setSelected("pencil")}
           icon={<Pencil />}
+          label="Pencil"
           active={selectedTool === "pencil"}
         />
         <IconButton
           onClick={() => setSelected("circle")}
           icon={<Circle />}
+          label="Circle"
           active={selectedTool === "circle"}
         />
         <IconButton
           onClick={() => setSelected("rect")}
           icon={<RectangleHorizontal />}
+          label="Rectangle"
           active={selectedTool === "rect"}
         />
         <IconButton
           onClick={() => setSelected("text")}
           icon={<Text/>}
+          label="Text"
           active={selectedTool === "text"}
         />
         <IconButton
           onClick={() => setSelected("reset")}
           icon={<Trash/>}
+          label="Reset"
           active={selectedTool === "reset"}
         />
         
