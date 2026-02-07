@@ -64,6 +64,16 @@ function ToolBar({
     <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-white rounded-md shadow px-2 py-1">
       <div className="flex gap-2">
         <IconButton
+          onClick={() => setSelected("select")}
+          icon={<MousePointer2 />}   
+          active={selectedTool === "select"}
+        />
+        <IconButton
+          onClick={() => setSelected("hand")}
+          icon={<Hand />}   
+          active={selectedTool === "hand"}
+        />
+        <IconButton
           onClick={() => setSelected("pencil")}
           icon={<Pencil />}
           active={selectedTool === "pencil"}
@@ -88,16 +98,8 @@ function ToolBar({
           icon={<Trash/>}
           active={selectedTool === "reset"}
         />
-        <IconButton
-          onClick={() => setSelected("hand")}
-          icon={<Hand />}   
-          active={selectedTool === "hand"}
-        />
-        <IconButton
-          onClick={() => setSelected("select")}
-          icon={<MousePointer2 />}   
-          active={selectedTool === "select"}
-        />
+        
+        
       </div>
     </div>
   );
