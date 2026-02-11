@@ -33,7 +33,7 @@ const Header = () => {
           </Link>
           
           <Link href="/signup">
-            <Button variant="default" size="sm" className="w-25 h-8 rounded-xl cursor-pointer">
+            <Button variant="default" size="sm" className="w-26 h-8 rounded-xl cursor-pointer">
               Get Started
             </Button>
           </Link>

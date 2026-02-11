@@ -15,12 +15,12 @@ const Footer = () => {
           <nav className="flex items-center gap-6 text-sm text-muted-foreground">
             <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
             <a href="#" className="hover:text-foreground transition-colors">Terms</a>
-            <a href="#" className="hover:text-foreground transition-colors">GitHub</a>
-            <a href="#" className="hover:text-foreground transition-colors">Twitter</a>
+            <a href="https://github.com/manavsingh345" className="hover:text-foreground transition-colors">GitHub</a>
+            <a href="https://manavv.vercel.app/" className="hover:text-foreground transition-colors">Portfolio</a>
           </nav>
           
           <p className="text-sm text-muted-foreground">
-            © 2024 GraphiDraw. Made By Manav
+            © 2026 GraphiDraw. Made By Manav
           </p>
         </div>
       </div>

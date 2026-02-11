@@ -1,11 +1,39 @@
-import { Button } from "@repo/ui/Bigbutton"
-import { ArrowRight, Sparkles } from "lucide-react";
+"use client";
+
+import { useEffect, useState } from "react";
+import { Button } from "@repo/ui/Bigbutton";
+import { ArrowRight, Sparkles, X } from "lucide-react";
 import Image from "next/image";
 import heroImage from "@/public/hero-whiteboard.png";
 import Link from "next/link";
 
+const DEMO_VIDEO_URL =
+  "https://res.cloudinary.com/dmtktd1wr/video/upload/v1770823996/Untitled_video_-_Made_with_Clipchamp_iyxbb2.mp4";
+
 const Hero = () => {
+  const [showDemo, setShowDemo] = useState(false);
+
+  const handleWatchDemo = () => {
+    setShowDemo(true);
+  };
+
+  const handleCloseDemo = () => setShowDemo(false);
+
+  useEffect(() => {
+    if (!showDemo) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowDemo(false);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showDemo]);
+
   return (
+    <>
     <section className="pt-32 pb-20 px-6 overflow-hidden">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-12">
@@ -32,7 +60,13 @@ const Hero = () => {
                 <ArrowRight className="w-5 h-5" />
               </Button>
             </Link>
-            <Button variant="hero-outline" size="xl" className="w-50 cursor-pointer">
+            <Button
+              type="button"
+              variant="hero-outline"
+              size="xl"
+              className="w-50 cursor-pointer"
+              onClick={handleWatchDemo}
+            >
               Watch Demo
             </Button>
           </div>
@@ -54,6 +88,39 @@ const Hero = () => {
         </div>
       </div>
     </section>
+    {showDemo && (
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4"
+        onClick={handleCloseDemo}
+      >
+        <div
+          className="relative w-full max-w-4xl rounded-2xl overflow-hidden border-2 border-foreground/15 bg-card shadow-sketch-hover"
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Product demo video"
+        >
+          <button
+            type="button"
+            onClick={handleCloseDemo}
+            className="absolute top-3 right-3 z-10 inline-flex items-center justify-center rounded-md bg-black/60 text-white p-2 hover:bg-black/75 transition-colors cursor-pointer"
+            aria-label="Close demo video"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <video
+            src={DEMO_VIDEO_URL}
+            controls
+            autoPlay
+            playsInline
+            className="w-full h-auto bg-black"
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

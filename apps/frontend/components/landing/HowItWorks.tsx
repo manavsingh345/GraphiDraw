@@ -5,7 +5,7 @@ const steps = [
     icon: MousePointer2,
     number: "01",
     title: "Click to Start",
-    description: "No sign-up required. Just open the app and start drawing immediately.",
+    description: "Sign up, create a room, or join an existing one — start drawing instantly.",
   },
   {
     icon: Shapes,
@@ -17,7 +17,7 @@ const steps = [
     icon: Share2,
     title: "Share & Collaborate",
     number: "03",
-    description: "Share a link with your team or export your work anywhere.",
+    description: "Share your room name or slug with your team and export your work anywhere.",
   },
 ];
 
