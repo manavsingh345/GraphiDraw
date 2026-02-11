@@ -53,7 +53,7 @@ wss.on('connection',function connection(ws,request){
     const token=queryParams.get('token') ?? "";
     const userId=checkUser(token);
     if(!userId){
-        ws.close();
+        ws.close(4001, "Unauthorized");
         return null;
     }
     
