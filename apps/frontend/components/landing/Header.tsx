@@ -1,0 +1,46 @@
+import {Button} from "@repo/ui/Bigbutton"
+import { Pencil } from "lucide-react";
+import Link from "next/link"
+
+const Header = () => {
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
+      <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-sketch">
+            <Pencil className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <span className="font-display text-xl font-bold">GraphiDraw</span>
+        </div>
+        
+        <nav className="hidden md:flex items-center gap-8">
+          <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+            Features
+          </a>
+          <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+            How it works
+          </a>
+          <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+            Pricing
+          </a>
+        </nav>
+
+        <div className="flex items-center gap-3">
+          <Link href="/signin">
+            <Button variant="ghost" size="sm" className="hover:bg-gray-200 w-18 h-8 rounded-xl hover:cursor-pointer">
+              Sign in
+            </Button>
+          </Link>
+          
+          <Link href="/signup">
+            <Button variant="default" size="sm" className="w-25 h-8 rounded-xl cursor-pointer">
+              Get Started
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Header;

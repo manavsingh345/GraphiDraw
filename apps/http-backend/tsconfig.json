@@ -1,0 +1,16 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    "composite": true,
+    "incremental": true
+  },
+  "references": [
+    { "path": "../../packages/database" },
+    { "path": "../../packages/backend-common" },
+    { "path": "../../packages/common" }
+  ],
+  "include": ["src"]
+}

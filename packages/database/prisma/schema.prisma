@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+
+
+model User {
+  id        String  @id @default(uuid())
+  email     String  @unique
+  password  String
+  name      String
+  photo     String?
+
+  rooms     Room[]
+  shapes    Shape[]
+}
+
+model Room {
+  id          Int       @id @default(autoincrement())
+  slug        String    @unique
+  createdAt   DateTime  @default(now())
+  adminId     String
+  admin       User      @relation(fields: [adminId],references: [id])  
+  shapes      Shape[]
+}
+
+model Shape {
+  id          String  @id
+  roomId      Int
+  userId      String
+  type        String
+  x           Float?
+  y           Float?
+  width       Float?
+  height      Float?
+  centerX     Float?
+  centerY     Float?
+  radius      Float?
+  points      Json?
+  text        String?
+  fontSize    Int?
+  fontFamily  String?
+  fontWeight  Int?
+  strokeColor String?
+  fillColor   String?
+  strokeWidth Int?
+  createdAt   DateTime @default(now())
+
+  room        Room  @relation(fields: [roomId],references: [id])
+  user        User  @relation(fields: [userId],references: [id])
+
+  @@index([roomId])
+}
