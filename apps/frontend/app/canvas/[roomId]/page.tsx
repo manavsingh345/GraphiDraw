@@ -3,9 +3,9 @@ import RoomCanvas from "@/components/RoomCanvas";
 
 export default async function CanvasPage({params}:{params:{roomId:string}}) {
   
-  const roomId = (await params).roomId;
+  const roomPublicId = (await params).roomId;
   
   return (
-    <RoomCanvas roomId={roomId}/>
+    <RoomCanvas roomPublicId={roomPublicId}/>
   )
 }

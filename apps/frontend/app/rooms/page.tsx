@@ -10,8 +10,10 @@ export default function RoomsPage() {
   const [token, setToken] = useState<string | null>(null);
   const [createSlug, setCreateSlug] = useState("");
   const [joinSlug, setJoinSlug] = useState("");
-  const [roomId, setRoomId] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [roomPublicId, setRoomPublicId] = useState("");
+  const [createLoading, setCreateLoading] = useState(false);
+  const [joinSlugLoading, setJoinSlugLoading] = useState(false);
+  const [joinKeyLoading, setJoinKeyLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export default function RoomsPage() {
   const createRoom = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
-    setLoading(true);
+    setCreateLoading(true);
     setError("");
 
     try {
@@ -42,36 +44,40 @@ export default function RoomsPage() {
       if (!res.ok) {
         throw new Error(data.message ?? "Failed to create room");
       }
-      router.push(`/canvas/${data.roomId}`);
+      router.push(`/r/${data.roomPublicId}`);
     } catch (err: any) {
       setError(err?.message ?? "Failed to create room");
     } finally {
-      setLoading(false);
+      setCreateLoading(false);
     }
   };
 
   const joinBySlug = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setJoinSlugLoading(true);
     setError("");
     try {
       const res = await fetch(`${HTTP_BACKEND}/room/${joinSlug}`);
       const data = await res.json();
-      if (!res.ok || !data.room?.id) {
+      if (!res.ok || !data.room?.publicId) {
         throw new Error(data.message ?? "Room not found");
       }
-      router.push(`/canvas/${data.room.id}`);
+      router.push(`/r/${data.room.publicId}`);
     } catch (err: any) {
       setError(err?.message ?? "Room not found");
     } finally {
-      setLoading(false);
+      setJoinSlugLoading(false);
     }
   };
 
-  const joinById = (e: React.FormEvent) => {
+  const joinByPublicId = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!roomId.trim()) return;
-    router.push(`/canvas/${roomId.trim()}`);
+    setJoinKeyLoading(true);
+    if (!roomPublicId.trim()) {
+      setJoinKeyLoading(false);
+      return;
+    }
+    router.push(`/r/${roomPublicId.trim()}`);
   };
 
   return (
@@ -100,9 +106,9 @@ export default function RoomsPage() {
           <button
             type="submit"
             className="w-full sketch-border py-2 rounded bg-primary text-primary-foreground"
-            disabled={loading || !token}
+            disabled={createLoading || !token}
           >
-            {loading ? "Please wait..." : "Create Room"}
+            {createLoading ? "Please wait..." : "Create Room"}
           </button>
         </form>
 
@@ -119,27 +125,28 @@ export default function RoomsPage() {
           <button
             type="submit"
             className="w-full sketch-border py-2 rounded bg-secondary text-secondary-foreground"
-            disabled={loading}
+            disabled={joinSlugLoading}
           >
-            {loading ? "Please wait..." : "Join by Slug"}
+            {joinSlugLoading ? "Please wait..." : "Join by Slug"}
           </button>
         </form>
 
         <div className="text-center text-muted-foreground text-sm">or</div>
 
-        <form onSubmit={joinById} className="space-y-2">
-          <label className="text-sm font-medium">Join by room ID</label>
+        <form onSubmit={joinByPublicId} className="space-y-2">
+          <label className="text-sm font-medium">Join by room key</label>
           <input
             className="w-full sketch-border bg-background px-3 py-2 rounded"
-            placeholder="room id"
-            value={roomId}
-            onChange={(e) => setRoomId(e.target.value)}
+            placeholder="room public key"
+            value={roomPublicId}
+            onChange={(e) => setRoomPublicId(e.target.value)}
           />
           <button
             type="submit"
             className="w-full sketch-border py-2 rounded bg-accent text-accent-foreground"
+            disabled={joinKeyLoading}
           >
-            Join by ID
+            {joinKeyLoading ? "Please wait..." : "Join by Key"}
           </button>
         </form>
 

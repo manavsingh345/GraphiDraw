@@ -5,13 +5,13 @@ import GraphiBar from "./GraphiBar";
 
 
 type CanvasProps = {
-  roomId: string;
+  roomPublicId: string;
   socket: WebSocket;
 };
 
 export type Tool = "circle" | "rect" | "pencil" | "text" | "reset" | "hand" | "select" | "eraser";
 
-export function Canvas({ roomId, socket }: CanvasProps) {
+export function Canvas({ roomPublicId, socket }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [game, setGame] = useState<Game | null>(null);
   const [selectedTool, setSelected] = useState<Tool>("select");
@@ -52,13 +52,13 @@ export function Canvas({ roomId, socket }: CanvasProps) {
     if (!canvasRef.current) return;
 
     const canvas = canvasRef.current;
-    const g = new Game(canvas, roomId, socket);
+    const g = new Game(canvas, roomPublicId, socket);
     setGame(g);
 
     return () => {
       g?.destroy?.(); //cleanup hook
     };
-  }, [roomId, socket]);
+  }, [roomPublicId, socket]);
   
 
   return (

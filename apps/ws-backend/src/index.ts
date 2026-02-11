@@ -1,5 +1,5 @@
 import { WebSocketServer,WebSocket } from "ws"
-import jwt, { JwtPayload } from "jsonwebtoken"
+import jwt from "jsonwebtoken"
 import {JWT_SECRET} from "@repo/backend-common/config";
 import { prismaClient } from "@repo/database";
 import dotenv from "dotenv";
@@ -32,6 +32,18 @@ function checkUser(token:string): string | null{
     }
 }
 
+async function getRoomIdByPublicId(publicId: string): Promise<number | null> {
+    const room = await prismaClient.room.findUnique({
+        where: {
+            publicId
+        },
+        select: {
+            id: true
+        }
+    });
+    return room?.id ?? null;
+}
+
 wss.on('connection',function connection(ws,request){
     const url=request.url;      
     if(!url){
@@ -55,18 +67,35 @@ wss.on('connection',function connection(ws,request){
     ws.on('message',async function message(data){
         const parsedData=JSON.parse(data as unknown as string);
         if(parsedData.type === "join_room"){
+            const roomPublicId = parsedData.roomPublicId;
+            if (typeof roomPublicId !== "string" || roomPublicId.length === 0) {
+                return;
+            }
             const user = users.find(x => x.ws ===ws);
-            user?.rooms.push(parsedData.roomId);
+            if (user && !user.rooms.includes(roomPublicId)) {
+                user.rooms.push(roomPublicId);
+            }
         }
         if(parsedData.type === "leave_room"){
+            const roomPublicId = parsedData.roomPublicId;
+            if (typeof roomPublicId !== "string" || roomPublicId.length === 0) {
+                return;
+            }
             const user = users.find(x => x.ws ===ws);
             if(!user){
                 return;
             }
-            user.rooms =  user?.rooms.filter(x => x !== parsedData.roomId);
+            user.rooms =  user.rooms.filter(x => x !== roomPublicId);
         }
         if(parsedData.type === "chat"){
-            const roomId=parsedData.roomId;
+            const roomPublicId = parsedData.roomPublicId;
+            if (typeof roomPublicId !== "string" || roomPublicId.length === 0) {
+                return;
+            }
+            const roomId = await getRoomIdByPublicId(roomPublicId);
+            if (!roomId) {
+                return;
+            }
             const message = parsedData.message;
             let shapeId: string | null = null;
             let shape: any | null = null;
@@ -130,11 +159,11 @@ wss.on('connection',function connection(ws,request){
 
             //broadcast the message
             users.forEach(user =>{
-                if(user.rooms.includes(roomId)){
+                if(user.rooms.includes(roomPublicId)){
                     user.ws.send(JSON.stringify({
                         type:"chat",
                         message:message,
-                        roomId
+                        roomPublicId
                     }))
                 }
             }); 
@@ -142,15 +171,18 @@ wss.on('connection',function connection(ws,request){
         }
 
         if (parsedData.type === "reset") {
-            const roomId = parsedData.roomId;
+            const roomPublicId = parsedData.roomPublicId;
+            if (typeof roomPublicId !== "string" || roomPublicId.length === 0) {
+                return;
+            }
 
             // broadcast reset to all users in this room
             users.forEach((user) => {
-                if (user.rooms.includes(roomId)) {
+                if (user.rooms.includes(roomPublicId)) {
                 user.ws.send(
                     JSON.stringify({
                     type: "reset",
-                    roomId,
+                    roomPublicId,
                     })
                 );
                 }
@@ -159,8 +191,15 @@ wss.on('connection',function connection(ws,request){
             }
 
         if (parsedData.type === "erase") {
-            const roomId = parsedData.roomId;
+            const roomPublicId = parsedData.roomPublicId;
             const shapeId = parsedData.shapeId;
+            if (typeof roomPublicId !== "string" || roomPublicId.length === 0) {
+                return;
+            }
+            const roomId = await getRoomIdByPublicId(roomPublicId);
+            if (!roomId) {
+                return;
+            }
 
             if (shapeId) {
                 await prismaClient.shape.deleteMany({
@@ -173,11 +212,11 @@ wss.on('connection',function connection(ws,request){
 
             // broadcast erase to all users in this room
             users.forEach((user) => {
-                if (user.rooms.includes(roomId)) {
+                if (user.rooms.includes(roomPublicId)) {
                 user.ws.send(
                     JSON.stringify({
                     type: "erase",
-                    roomId,
+                    roomPublicId,
                     shapeId
                     })
                 );

@@ -6,10 +6,10 @@ import { Canvas } from "./Canvas";
 
 
 type CanvasProps = {
-  roomId: string;
+  roomPublicId: string;
 };
 
-export default function RoomCanvas({ roomId }: CanvasProps) {
+export default function RoomCanvas({ roomPublicId }: CanvasProps) {
   const router = useRouter();
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export default function RoomCanvas({ roomId }: CanvasProps) {
     const ws = new WebSocket(`${WS_URL}?token=${encodeURIComponent(token)}`);
     ws.onopen = () => {
       setSocket(ws);
-      ws.send(JSON.stringify({ type: "join_room", roomId: Number(roomId) }));
+      ws.send(JSON.stringify({ type: "join_room", roomPublicId }));
     };
     ws.onerror = () => {
       setError("WebSocket connection failed.");
@@ -43,7 +43,7 @@ export default function RoomCanvas({ roomId }: CanvasProps) {
     return () => {
       ws.close();
     };
-  }, [token, roomId]);
+  }, [token, roomPublicId]);
 
   if (error) {
     return (
@@ -71,7 +71,7 @@ export default function RoomCanvas({ roomId }: CanvasProps) {
   }
   return (
     <>
-      <Canvas roomId={roomId} socket={socket} />
+      <Canvas roomPublicId={roomPublicId} socket={socket} />
     </>
   );
 }

@@ -49,7 +49,7 @@ export class Game {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private existingShapes: Shape[] = [];
-  private roomId: string;
+  private roomPublicId: string;
   private socket: WebSocket;
   private clientId: string;
 
@@ -87,10 +87,10 @@ export class Game {
   private onMouseMove!: (e: MouseEvent) => void;
   
 
-  constructor(canvas: HTMLCanvasElement,roomId: string,socket: WebSocket) {
+  constructor(canvas: HTMLCanvasElement,roomPublicId: string,socket: WebSocket) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
-    this.roomId = roomId;
+    this.roomPublicId = roomPublicId;
     this.socket = socket;
     this.clientId =
       typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -153,7 +153,7 @@ export class Game {
 
   // init
   private async init() {
-    this.existingShapes = await getExistingShapes(this.roomId);
+    this.existingShapes = await getExistingShapes(this.roomPublicId);
     this.clearCanvas();
   }
 
@@ -323,7 +323,7 @@ export class Game {
       this.socket.send(
         JSON.stringify({
           type: "erase",
-          roomId: Number(this.roomId),
+          roomPublicId: this.roomPublicId,
           shapeId
         })
       );
@@ -453,7 +453,7 @@ export class Game {
           this.socket.send(
             JSON.stringify({
               type: "chat",
-              roomId: Number(this.roomId),
+              roomPublicId: this.roomPublicId,
               message: JSON.stringify({ shape, clientId: this.clientId }),
             })
           );
@@ -484,7 +484,7 @@ export class Game {
         this.socket.send(
           JSON.stringify({
             type: "chat",
-            roomId: Number(this.roomId),
+            roomPublicId: this.roomPublicId,
             message: JSON.stringify({ shape, clientId: this.clientId }),
           })
         );
@@ -602,7 +602,7 @@ export class Game {
           this.socket.send(
             JSON.stringify({
               type: "chat",
-              roomId: Number(this.roomId),
+              roomPublicId: this.roomPublicId,
               message: JSON.stringify({ shape, clientId: this.clientId }),
             })
           );
@@ -644,7 +644,7 @@ export class Game {
     this.clearCanvas();
 
     //clear DB
-    await fetch(`${HTTP_BACKEND}/shapes/${this.roomId}`, {
+    await fetch(`${HTTP_BACKEND}/shapes/${this.roomPublicId}`, {
       method: "DELETE",
     });
 
@@ -653,7 +653,7 @@ export class Game {
       this.socket.send(
         JSON.stringify({
           type: "reset",
-          roomId: Number(this.roomId),
+          roomPublicId: this.roomPublicId,
         })
       );
     }

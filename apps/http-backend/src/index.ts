@@ -14,6 +14,17 @@ const app=express();
 app.use(express.json());
 app.use(cors())
 
+async function getRoomIdByPublicId(publicId: string): Promise<number | null> {
+    const room = await prismaClient.room.findUnique({
+        where: {
+            publicId
+        },
+        select: {
+            id: true
+        }
+    });
+    return room?.id ?? null;
+}
 
 app.post("/signup",async (req,res)=>{
     //ZOD validation
@@ -122,7 +133,7 @@ app.post("/room",middleware,async (req,res)=>{
             }
         })
         res.json({
-            roomId:room.id
+            roomPublicId: room.publicId
         })
     }catch(e){
         res.status(411).json({
@@ -131,9 +142,15 @@ app.post("/room",middleware,async (req,res)=>{
     }
 });
 
-app.get("/shapes/:roomId",async(req,res)=>{
-    const roomId=Number(req.params.roomId);
+app.get("/shapes/:roomPublicId",async(req,res)=>{
+    const roomPublicId = req.params.roomPublicId;
     try{
+        const roomId = await getRoomIdByPublicId(roomPublicId);
+        if (!roomId) {
+            return res.status(404).json({
+                message: "Room not found"
+            });
+        }
         const shapes = await prismaClient.shape.findMany({
             where:{
               roomId:roomId
@@ -153,16 +170,16 @@ app.get("/shapes/:roomId",async(req,res)=>{
     
 });
 
-app.delete("/shapes/:roomId", async (req, res) => {
-  const roomId = Number(req.params.roomId);
-
-  if (isNaN(roomId)) {
-    return res.status(400).json({
-      message: "Invalid roomId",
-    });
-  }
+app.delete("/shapes/:roomPublicId", async (req, res) => {
+  const roomPublicId = req.params.roomPublicId;
 
   try {
+    const roomId = await getRoomIdByPublicId(roomPublicId);
+    if (!roomId) {
+      return res.status(404).json({
+        message: "Room not found",
+      });
+    }
     await prismaClient.shape.deleteMany({
       where: {
         roomId: roomId,
@@ -180,17 +197,23 @@ app.delete("/shapes/:roomId", async (req, res) => {
   }
 });
 
-app.delete("/shapes/:roomId/:shapeId", async (req, res) => {
-  const roomId = Number(req.params.roomId);
+app.delete("/shapes/:roomPublicId/:shapeId", async (req, res) => {
+  const roomPublicId = req.params.roomPublicId;
   const { shapeId } = req.params;
 
-  if (isNaN(roomId) || !shapeId) {
+  if (!shapeId) {
     return res.status(400).json({
-      message: "Invalid roomId or shapeId",
+      message: "Invalid roomPublicId or shapeId",
     });
   }
 
   try {
+    const roomId = await getRoomIdByPublicId(roomPublicId);
+    if (!roomId) {
+      return res.status(404).json({
+        message: "Room not found",
+      });
+    }
     const result = await prismaClient.shape.deleteMany({
       where: {
         roomId: roomId,
@@ -214,10 +237,20 @@ app.get("/room/:slug",async(req,res)=>{
     const slug=req.params.slug;
     try{
         const room=await prismaClient.room.findFirst({
-        where:{
-            slug
-        }
+            where:{
+                slug
+            },
+            select: {
+                id: true,
+                slug: true,
+                publicId: true
+            }
         });
+        if (!room) {
+            return res.status(404).json({
+                message: "Room not found"
+            });
+        }
         res.json({
             room
         })
