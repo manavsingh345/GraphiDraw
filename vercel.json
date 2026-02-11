@@ -1,4 +1,4 @@
 {
-  "installCommand": "corepack enable && pnpm install",
-  "buildCommand": "pnpm turbo run build --filter=frontend"
+  "installCommand": "corepack prepare pnpm@9.15.0 --activate && pnpm install --frozen-lockfile --filter=frontend...",
+  "buildCommand": "pnpm --filter frontend run build"
 }
