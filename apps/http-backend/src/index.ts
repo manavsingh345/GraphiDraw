@@ -81,6 +81,7 @@ app.post("/signin",async (req,res)=>{
         })
     }
     const {email,password}=parsed.data;
+    const rememberMe = req.body?.rememberMe === true;
     try{
         const existingUser=await prismaClient.user.findUnique({
             where:{email}
@@ -101,7 +102,7 @@ app.post("/signin",async (req,res)=>{
 
         const token=jwt.sign(
             {userId:existingUser.id.toString()},
-            JWT_SECRET,{ expiresIn: "7d" }
+            JWT_SECRET,{ expiresIn: rememberMe ? "30d" : "7d" }
         );
 
         res.json({

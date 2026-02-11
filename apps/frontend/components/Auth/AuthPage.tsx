@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@repo/ui/Bigbutton";
@@ -22,6 +22,16 @@ const AuthPage = ({ type }: AuthPageProps) => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const remembered = localStorage.getItem("rememberMe") === "true";
+    setRememberMe(remembered);
+
+    const existingToken = localStorage.getItem("token") ?? sessionStorage.getItem("token");
+    if (existingToken) {
+      router.replace("/rooms");
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,17 +58,20 @@ const AuthPage = ({ type }: AuthPageProps) => {
       const signinRes = await fetch(`${HTTP_BACKEND}/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, rememberMe }),
       });
       const signinData = await signinRes.json();
       if (!signinRes.ok) {
         throw new Error(signinData.message ?? "Sign in failed");
       }
 
-      localStorage.setItem("token", signinData.token);
       if (rememberMe) {
+        localStorage.setItem("token", signinData.token);
         localStorage.setItem("rememberMe", "true");
+        sessionStorage.removeItem("token");
       } else {
+        sessionStorage.setItem("token", signinData.token);
+        localStorage.removeItem("token");
         localStorage.removeItem("rememberMe");
       }
 
@@ -245,3 +258,4 @@ const AuthPage = ({ type }: AuthPageProps) => {
 };
 
 export default AuthPage;
+

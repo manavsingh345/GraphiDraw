@@ -17,7 +17,7 @@ export default function RoomCanvas({ roomPublicId }: CanvasProps) {
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
-    const stored = localStorage.getItem("token");
+    const stored = localStorage.getItem("token") ?? sessionStorage.getItem("token");
     if (!stored) {
       setError("Please sign in to continue.");
       return;

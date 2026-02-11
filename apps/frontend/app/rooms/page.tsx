@@ -17,13 +17,13 @@ export default function RoomsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const stored = localStorage.getItem("token");
+    const stored = localStorage.getItem("token") ?? sessionStorage.getItem("token");
     if (!stored) {
-      setError("Please sign in to continue.");
+      router.replace("/signin");
       return;
     }
     setToken(stored);
-  }, []);
+  }, [router]);
 
   const createRoom = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,13 +80,15 @@ export default function RoomsPage() {
     router.push(`/r/${roomPublicId.trim()}`);
   };
 
+  if (!token) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-card sketch-border shadow-sketch p-6 rounded-xl space-y-5">
         <h1 className="font-display text-2xl font-bold">Rooms</h1>
-        <p className="text-muted-foreground text-sm">
-          Create a new room or join an existing one.
-        </p>
+        <p className="text-muted-foreground text-sm">Create a new room or join an existing one.</p>
 
         {error && (
           <p className="text-sm text-red-600" role="alert">

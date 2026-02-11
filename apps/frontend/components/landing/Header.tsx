@@ -1,8 +1,29 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import {Button} from "@repo/ui/Bigbutton"
 import { Pencil } from "lucide-react";
 import Link from "next/link"
 
 const Header = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const syncAuthState = () => {
+      const hasToken = Boolean(localStorage.getItem("token") ?? sessionStorage.getItem("token"));
+      setIsAuthenticated(hasToken);
+    };
+
+    syncAuthState();
+    window.addEventListener("storage", syncAuthState);
+    window.addEventListener("focus", syncAuthState);
+
+    return () => {
+      window.removeEventListener("storage", syncAuthState);
+      window.removeEventListener("focus", syncAuthState);
+    };
+  }, []);
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-6 h-16 flex items-center justify-between">
@@ -26,17 +47,27 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link href="/signin">
-            <Button variant="ghost" size="sm" className="hover:bg-gray-200 w-18 h-8 rounded-xl hover:cursor-pointer">
-              Sign in
-            </Button>
-          </Link>
-          
-          <Link href="/signup">
-            <Button variant="default" size="sm" className="w-26 h-8 rounded-xl cursor-pointer">
-              Get Started
-            </Button>
-          </Link>
+          {isAuthenticated === null ? null : isAuthenticated ? (
+            <Link href="/rooms">
+              <Button variant="default" size="sm" className="w-28 h-8 rounded-xl cursor-pointer">
+                Go to Rooms
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/signin">
+                <Button variant="ghost" size="sm" className="hover:bg-gray-200 w-18 h-8 rounded-xl hover:cursor-pointer">
+                  Sign in
+                </Button>
+              </Link>
+              
+              <Link href="/signup">
+                <Button variant="default" size="sm" className="w-26 h-8 rounded-xl cursor-pointer">
+                  Get Started
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
