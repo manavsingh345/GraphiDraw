@@ -14,6 +14,32 @@ function getErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+function readCreatedRoomPublicId(data: Record<string, unknown> | null): string | null {
+  if (!data) {
+    return null;
+  }
+
+  if (typeof data.roomPublicId === "string" && data.roomPublicId.trim()) {
+    return data.roomPublicId;
+  }
+
+  if (typeof data.publicId === "string" && data.publicId.trim()) {
+    return data.publicId;
+  }
+
+  const room = data.room;
+  if (
+    room &&
+    typeof room === "object" &&
+    typeof (room as { publicId?: unknown }).publicId === "string" &&
+    (room as { publicId: string }).publicId.trim()
+  ) {
+    return (room as { publicId: string }).publicId;
+  }
+
+  return null;
+}
+
 async function readJsonResponse(response: Response): Promise<Record<string, unknown> | null> {
   const text = await response.text();
   if (!text) {
@@ -79,10 +105,15 @@ export default function RoomsPage() {
           typeof data?.message === "string" ? data.message : "Failed to create room"
         );
       }
-      if (typeof data?.roomPublicId !== "string") {
-        throw new Error("Room creation returned an invalid response");
+      const createdRoomPublicId = readCreatedRoomPublicId(data);
+      if (!createdRoomPublicId) {
+        throw new Error(
+          typeof data?.message === "string"
+            ? data.message
+            : "Room creation returned an unexpected response"
+        );
       }
-      router.push(`/r/${data.roomPublicId}`);
+      router.push(`/r/${createdRoomPublicId}`);
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to create room"));
     } finally {
