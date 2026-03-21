@@ -22,15 +22,18 @@ export function Canvas({ roomPublicId, socket }: CanvasProps) {
   // tool sync and reset
   useEffect(() => {
     if(!game) return;
+    game.setTool(selectedTool);
+  }, [selectedTool, game]);
 
-    if(selectedTool === 'reset'){
-      game.resetCanvas();
-      setSelected('select');
+  const handleToolSelect = (tool: Tool) => {
+    if (tool === "reset") {
+      void game?.resetCanvas();
+      setSelected("select");
       return;
     }
 
-    game.setTool(selectedTool);
-  }, [selectedTool, game]);
+    setSelected(tool);
+  };
 
   useEffect(() => {
     if (!game) return;
@@ -111,7 +114,7 @@ export function Canvas({ roomPublicId, socket }: CanvasProps) {
         ref={canvasRef}
         className="fixed inset-0 block"
       />
-      <ToolBar selectedTool={selectedTool} setSelected={setSelected} />
+      <ToolBar selectedTool={selectedTool} setSelected={handleToolSelect} />
     </>
   );
 }

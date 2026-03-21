@@ -1,9 +1,8 @@
-import { WebSocketServer,WebSocket } from "ws"
-import jwt from "jsonwebtoken"
-import {JWT_SECRET} from "@repo/backend-common/config";
-import { prismaClient } from "@repo/database";
 import dotenv from "dotenv";
 dotenv.config();
+import { WebSocketServer,WebSocket } from "ws"
+import { prismaClient } from "@repo/database/client";
+import { resolveClerkUser } from "@repo/backend-common/auth";
 
 const wss=new WebSocketServer({port:8080});
 
@@ -15,22 +14,39 @@ interface User {
 };
 const users:User[] = [];
 
-function checkUser(token:string): string | null{
-    try{
-    const decoded=jwt.verify(token,JWT_SECRET);
+import { verifyToken } from '@clerk/backend';
 
-    if(typeof decoded==="string"){
-        return null;
-    }
-    
-    if(!decoded || !decoded.userId){
-        return null;
-    }
-    return decoded.userId;
-    }catch(err){
-        return null;
+async function checkUser(token:string): Promise<string | null>{
+    try{
+        const decoded = await verifyToken(token, {
+            secretKey: process.env.CLERK_SECRET_KEY,
+            clockSkewInMs: 15000
+        });
+        const user = await resolveClerkUser(decoded?.sub, decoded as Record<string, unknown> | null | undefined);
+        if(!user) return null;
+        await prismaClient.user.upsert({
+            where: { id: user.id },
+            update: {
+                email: user.email,
+                name: user.name,
+                photo: user.photo
+            },
+            create: {
+                id: user.id,
+                email: user.email,
+                password: "",
+                name: user.name,
+                photo: user.photo
+            }
+        });
+        return user.id;
+    }catch(err){ 
+        console.error("WS verifyToken error:", err, "Token received:", token ? token.substring(0, 20) + "..." : "empty");
+        require('fs').appendFileSync('ws-error.log', err?.toString() + '\\n');
+        return null; 
     }
 }
+
 
 async function getRoomIdByPublicId(publicId: string): Promise<number | null> {
     const room = await prismaClient.room.findUnique({
@@ -44,14 +60,14 @@ async function getRoomIdByPublicId(publicId: string): Promise<number | null> {
     return room?.id ?? null;
 }
 
-wss.on('connection',function connection(ws,request){
+wss.on('connection',async function connection(ws,request){
     const url=request.url;      
     if(!url){
         return;
     }
     const queryParams=new URLSearchParams(url.split('?')[1]);
     const token=queryParams.get('token') ?? "";
-    const userId=checkUser(token);
+    const userId=await checkUser(token);
     if(!userId){
         ws.close(4001, "Unauthorized");
         return null;

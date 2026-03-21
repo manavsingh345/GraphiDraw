@@ -417,11 +417,10 @@ export class Game {
 
     
 
-    this.onMouseUp = (e: MouseEvent) => {
+    this.onMouseUp = () => {
       if (!this.clicked) return;
       this.clicked = false;
 
-      const pos = getPos(e);
       let shape: Shape | null = null;
 
       if (this.selectedTool === "text") return;

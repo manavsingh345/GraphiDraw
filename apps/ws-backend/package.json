@@ -9,6 +9,7 @@
     "dev": "npm run build && npm run start"
   },
   "dependencies": {
+    "@clerk/backend": "^3.2.2",
     "@repo/database": "workspace:*",
     "@repo/backend-common": "workspace:*",
     "@repo/typescript-config": "workspace:*",

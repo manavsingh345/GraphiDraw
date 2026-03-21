@@ -2,8 +2,8 @@
 import { WS_URL } from "@/config";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { Canvas } from "./Canvas";
-
 
 type CanvasProps = {
   roomPublicId: string;
@@ -11,59 +11,78 @@ type CanvasProps = {
 
 export default function RoomCanvas({ roomPublicId }: CanvasProps) {
   const router = useRouter();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [error, setError] = useState("");
-  const [requiresAuth, setRequiresAuth] = useState(false);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+  const [wsError, setWsError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const UNAUTHORIZED_CLOSE_CODE = 4001;
+  const requiresAuth = isLoaded && !isSignedIn;
+  const error =
+    (requiresAuth ? "Please sign in to continue." : null) ??
+    sessionError ??
+    wsError;
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
-    const stored = localStorage.getItem("token") ?? sessionStorage.getItem("token");
-    if (!stored) {
-      setRequiresAuth(true);
-      setError("Please sign in to continue.");
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  useEffect(() => {
+    if (requiresAuth) {
       router.replace("/signin");
       return;
     }
-    setRequiresAuth(false);
-    setToken(stored);
-  }, [router]);
+
+    if (!isSignedIn) {
+      return;
+    }
+
+    getToken()
+      .then((nextToken) => {
+        setToken(nextToken);
+        if (!nextToken) {
+          setSessionError("Unable to start an authenticated session. Please sign in again.");
+        }
+      })
+      .catch(() => {
+        setSessionError("Unable to start an authenticated session. Please sign in again.");
+      });
+  }, [requiresAuth, isSignedIn, router, getToken]);
 
   useEffect(() => {
     if (!token) return;
 
     let disposed = false;
-    setError("");
     const ws = new WebSocket(`${WS_URL}?token=${encodeURIComponent(token)}`);
     ws.onopen = () => {
       if (disposed) return;
       setSocket(ws);
-      setError("");
+      setWsError(null);
       ws.send(JSON.stringify({ type: "join_room", roomPublicId }));
     };
     ws.onerror = () => {
       if (disposed) return;
-      setError("WebSocket connection failed. Please retry.");
+      setWsError("WebSocket connection failed. Please retry.");
     };
     ws.onclose = (event) => {
       if (disposed) return;
       setSocket(null);
       if (event.code === UNAUTHORIZED_CLOSE_CODE) {
-        setRequiresAuth(true);
-        setError("Session expired. Please sign in again.");
-        localStorage.removeItem("token");
-        sessionStorage.removeItem("token");
-        router.replace("/signin");
+        setSessionError("WebSocket session unauthorized or expired. Please refresh the page.");
+        return;
       }
+      setWsError("WebSocket connection failed. Please retry.");
     };
 
     return () => {
       disposed = true;
       ws.close();
     };
-  }, [token, roomPublicId, retryCount, router]);
+  }, [token, roomPublicId, retryCount]);
 
   if (error) {
     return (
@@ -92,10 +111,6 @@ export default function RoomCanvas({ roomPublicId }: CanvasProps) {
       </div>
     );
   }
-  return (
-    <>
-      <Canvas roomPublicId={roomPublicId} socket={socket} />
-    </>
-  );
-}
 
+  return <Canvas roomPublicId={roomPublicId} socket={socket} />;
+}

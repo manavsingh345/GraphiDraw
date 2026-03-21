@@ -1,0 +1,2 @@
+﻿src/middleware.ts(33,14): error TS2742: The inferred type of 'middleware' cannot be named without a reference to '.pnpm/@types+express-serve-static-core@5.1.1/node_modules/@types/express-serve-static-core'. This is likely not portable. A type annotation is necessary.
+src/middleware.ts(33,14): error TS2742: The inferred type of 'middleware' cannot be named without a reference to '.pnpm/@types+qs@6.14.0/node_modules/@types/qs'. This is likely not portable. A type annotation is necessary.

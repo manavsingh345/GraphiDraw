@@ -1,29 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {Button} from "@repo/ui/Bigbutton"
+import { Button } from "@repo/ui/Bigbutton";
 import { Pencil } from "lucide-react";
-import Link from "next/link"
+import Link from "next/link";
+import { UserButton, useAuth } from "@clerk/nextjs";
 
 const Header = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const syncAuthState = () => {
-      const hasToken = Boolean(localStorage.getItem("token") ?? sessionStorage.getItem("token"));
-      setIsAuthenticated(hasToken);
-    };
-
-    syncAuthState();
-    window.addEventListener("storage", syncAuthState);
-    window.addEventListener("focus", syncAuthState);
-
-    return () => {
-      window.removeEventListener("storage", syncAuthState);
-      window.removeEventListener("focus", syncAuthState);
-    };
-  }, []);
-
+  const { isLoaded, userId } = useAuth();
+  
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-6 h-16 flex items-center justify-between">
@@ -47,12 +31,15 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-3">
-          {isAuthenticated === null ? null : isAuthenticated ? (
-            <Link href="/rooms">
-              <Button variant="default" size="sm" className="w-28 h-8 rounded-xl cursor-pointer">
-                Go to Rooms
-              </Button>
-            </Link>
+          {(!isLoaded) ? null : userId ? (
+            <>
+              <Link href="/rooms">
+                <Button variant="default" size="sm" className="w-28 h-8 rounded-xl cursor-pointer">
+                  Go to Rooms
+                </Button>
+              </Link>
+              <UserButton />
+            </>
           ) : (
             <>
               <Link href="/signin">

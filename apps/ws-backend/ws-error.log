@@ -1,0 +1,41 @@
+PrismaClientKnownRequestError: 
+Invalid `database_1.prismaClient.user.upsert()` invocation in
+C:\Users\hp\Desktop\GraphiDraw\apps\ws-backend\dist\index.js:19:44
+
+  16 const decoded = await (0, backend_1.verifyToken)(token, { secretKey: process.env.CLERK_SECRET_KEY });
+  17 if (!decoded || !decoded.sub)
+  18     return null;
+→ 19 await database_1.prismaClient.user.upsert(
+User was denied access on the database `(not available)`\nPrismaClientKnownRequestError: 
+Invalid `database_1.prismaClient.user.upsert()` invocation in
+C:\Users\hp\Desktop\GraphiDraw\apps\ws-backend\dist\index.js:19:44
+
+  16 const decoded = await (0, backend_1.verifyToken)(token, { secretKey: process.env.CLERK_SECRET_KEY });
+  17 if (!decoded || !decoded.sub)
+  18     return null;
+→ 19 await database_1.prismaClient.user.upsert(
+User was denied access on the database `(not available)`\nPrismaClientKnownRequestError: 
+Invalid `client_1.prismaClient.user.upsert()` invocation in
+C:\Users\hp\Desktop\GraphiDraw\apps\ws-backend\dist\index.js:21:42
+
+  18 const user = (0, auth_1.normalizeClerkUser)(decoded?.sub, decoded);
+  19 if (!user)
+  20     return null;
+→ 21 await client_1.prismaClient.user.upsert(
+Null constraint violation on the (not available)\nPrismaClientKnownRequestError: 
+Invalid `client_1.prismaClient.user.upsert()` invocation in
+C:\Users\hp\Desktop\GraphiDraw\apps\ws-backend\dist\index.js:21:42
+
+  18 const user = (0, auth_1.normalizeClerkUser)(decoded?.sub, decoded);
+  19 if (!user)
+  20     return null;
+→ 21 await client_1.prismaClient.user.upsert(
+Null constraint violation on the (not available)\nPrismaClientKnownRequestError: 
+Invalid `client_1.prismaClient.user.upsert()` invocation in
+C:\Users\hp\Desktop\GraphiDraw\apps\ws-backend\dist\index.js:21:42
+
+  18 const user = (0, auth_1.normalizeClerkUser)(decoded?.sub, decoded);
+  19 if (!user)
+  20     return null;
+→ 21 await client_1.prismaClient.user.upsert(
+Null constraint violation on the (not available)\nError: JWT issued at date claim (iat) is in the future. Issued at date: Sat, 21 Mar 2026 13:20:50 GMT; Current date: Sat, 21 Mar 2026 13:20:42 GMT;\nError: JWT issued at date claim (iat) is in the future. Issued at date: Sat, 21 Mar 2026 13:20:55 GMT; Current date: Sat, 21 Mar 2026 13:20:48 GMT;\nError: JWT issued at date claim (iat) is in the future. Issued at date: Sat, 21 Mar 2026 13:21:27 GMT; Current date: Sat, 21 Mar 2026 13:21:20 GMT;\nError: JWT issued at date claim (iat) is in the future. Issued at date: Sat, 21 Mar 2026 13:21:31 GMT; Current date: Sat, 21 Mar 2026 13:21:23 GMT;\nError: JWT issued at date claim (iat) is in the future. Issued at date: Sat, 21 Mar 2026 13:23:46 GMT; Current date: Sat, 21 Mar 2026 13:23:38 GMT;\nError: JWT issued at date claim (iat) is in the future. Issued at date: Sat, 21 Mar 2026 13:23:54 GMT; Current date: Sat, 21 Mar 2026 13:23:46 GMT;\n

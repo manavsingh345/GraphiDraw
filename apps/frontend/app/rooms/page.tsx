@@ -2,11 +2,34 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { HTTP_BACKEND } from "@/config";
 import Link from "next/link";
 
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
+}
+
+async function readJsonResponse(response: Response): Promise<Record<string, unknown> | null> {
+  const text = await response.text();
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 export default function RoomsPage() {
   const router = useRouter();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const [token, setToken] = useState<string | null>(null);
   const [createSlug, setCreateSlug] = useState("");
   const [joinSlug, setJoinSlug] = useState("");
@@ -17,17 +40,27 @@ export default function RoomsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const stored = localStorage.getItem("token") ?? sessionStorage.getItem("token");
-    if (!stored) {
+    if (isLoaded && !isSignedIn) {
       router.replace("/signin");
       return;
+    } else if (isSignedIn) {
+      getToken()
+        .then((t) => {
+          setToken(t);
+          if (!t) {
+            setError("Unable to start an authenticated session. Please sign in again.");
+          }
+        })
+        .catch(() => {
+          setError("Unable to start an authenticated session. Please sign in again.");
+        });
     }
-    setToken(stored);
-  }, [router]);
+  }, [isLoaded, isSignedIn, router, getToken]);
 
   const createRoom = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    const currentToken = await getToken();
+    if (!currentToken) return;
     setCreateLoading(true);
     setError("");
 
@@ -36,17 +69,22 @@ export default function RoomsPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          authorization: token,
+          authorization: `Bearer ${currentToken}`,
         },
         body: JSON.stringify({ slug: createSlug }),
       });
-      const data = await res.json();
+      const data = await readJsonResponse(res);
       if (!res.ok) {
-        throw new Error(data.message ?? "Failed to create room");
+        throw new Error(
+          typeof data?.message === "string" ? data.message : "Failed to create room"
+        );
+      }
+      if (typeof data?.roomPublicId !== "string") {
+        throw new Error("Room creation returned an invalid response");
       }
       router.push(`/r/${data.roomPublicId}`);
-    } catch (err: any) {
-      setError(err?.message ?? "Failed to create room");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to create room"));
     } finally {
       setCreateLoading(false);
     }
@@ -58,13 +96,21 @@ export default function RoomsPage() {
     setError("");
     try {
       const res = await fetch(`${HTTP_BACKEND}/room/${joinSlug}`);
-      const data = await res.json();
-      if (!res.ok || !data.room?.publicId) {
-        throw new Error(data.message ?? "Room not found");
+      const data = await readJsonResponse(res);
+      const room = data?.room;
+      if (
+        !res.ok ||
+        !room ||
+        typeof room !== "object" ||
+        typeof (room as { publicId?: unknown }).publicId !== "string"
+      ) {
+        throw new Error(
+          typeof data?.message === "string" ? data.message : "Room not found"
+        );
       }
-      router.push(`/r/${data.room.publicId}`);
-    } catch (err: any) {
-      setError(err?.message ?? "Room not found");
+      router.push(`/r/${(room as { publicId: string }).publicId}`);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Room not found"));
     } finally {
       setJoinSlugLoading(false);
     }
@@ -80,8 +126,24 @@ export default function RoomsPage() {
     router.push(`/r/${roomPublicId.trim()}`);
   };
 
-  if (!token) {
+  if (!isLoaded) {
     return null;
+  }
+
+  if (!token) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="w-full max-w-md bg-card sketch-border shadow-sketch p-6 rounded-xl space-y-3">
+          <h1 className="font-display text-2xl font-bold">Rooms</h1>
+          <p className="text-sm text-red-600" role="alert">
+            {error || "Loading your authenticated session..."}
+          </p>
+          <Link href="/signin" className="text-primary hover:underline text-sm">
+            Go to Sign In
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (

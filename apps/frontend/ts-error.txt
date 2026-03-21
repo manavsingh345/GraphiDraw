@@ -1,0 +1,6 @@
+﻿.next/dev/types/validator.ts(78,39): error TS2307: Cannot find module '../../../app/signin/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(87,39): error TS2307: Cannot find module '../../../app/signup/page.js' or its corresponding type declarations.
+components/landing/Header.tsx(6,10): error TS2724: '"@clerk/nextjs"' has no exported member named 'SignedIn'. Did you mean 'SignIn'?
+components/landing/Header.tsx(6,20): error TS2305: Module '"@clerk/nextjs"' has no exported member 'SignedOut'.
+components/landing/Header.tsx(38,25): error TS2322: Type '{ afterSignOutUrl: string; }' is not assignable to type 'IntrinsicAttributes & Without<WithClerkProp<PropsWithChildren<UserButtonPropsWithoutCustomPages> & FallbackProp>, "clerk">'.
+  Property 'afterSignOutUrl' does not exist on type 'IntrinsicAttributes & Without<WithClerkProp<PropsWithChildren<UserButtonPropsWithoutCustomPages> & FallbackProp>, "clerk">'.

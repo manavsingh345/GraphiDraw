@@ -1,11 +1,11 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express"
 import jwt from "jsonwebtoken"
 import {JWT_SECRET} from "@repo/backend-common/config";
 import { middleware } from "./middleware";
 
 import {CreateUserSchema,SigninSchema,CreateRoomSchema} from "@repo/common/types"
-import dotenv from "dotenv";
-dotenv.config();
 import { prismaClient } from "@repo/database/client";
 import bcrypt from "bcrypt";
 import cors from "cors";
@@ -42,8 +42,8 @@ app.post("/signup",async (req,res)=>{
         }
     });
     if(existingUser){
-        res.status(400).json({
-            message:"Email already exits"
+        return res.status(400).json({
+            message:"Email already exists"
         })
     }
 
@@ -92,6 +92,12 @@ app.post("/signin",async (req,res)=>{
                 message:"Invalid email and password"
             });
         }
+
+        if (!existingUser.password || existingUser.password === "") {
+            return res.status(401).json({
+                message: "This account uses Clerk sign-in. Please continue with Clerk."
+            });
+        }
         
         const passwordMatch=await bcrypt.compare(password,existingUser.password);
         if(!passwordMatch){
@@ -115,7 +121,29 @@ app.post("/signin",async (req,res)=>{
     }
 })
 
-app.post("/room",middleware,async (req,res)=>{
+import { Request, Response } from "express";
+
+app.post("/auth/sync", middleware, async (req: Request, res: Response) => {
+    // @ts-ignore
+    const userId = req.userId;
+    const user = await prismaClient.user.findUnique({
+        where: {
+            id: userId
+        },
+        select: {
+            id: true,
+            email: true,
+            name: true,
+            photo: true
+        }
+    });
+
+    res.json({
+        user
+    });
+});
+
+app.post("/room",middleware,async (req: Request,res: Response)=>{
     const parseddata = CreateRoomSchema.safeParse(req.body);
     if(!parseddata.success){
         res.json({
@@ -136,9 +164,15 @@ app.post("/room",middleware,async (req,res)=>{
         res.json({
             roomPublicId: room.publicId
         })
-    }catch(e){
-        res.status(411).json({
-            message:"Room already exits with this name"
+    }catch(e: any){
+        console.log("Error creating room:", e);
+        if (e?.code === "P2002") {
+            return res.status(409).json({
+                message:"Room already exists with this name"
+            });
+        }
+        res.status(500).json({
+            message:"Failed to create room"
         })
     }
 });

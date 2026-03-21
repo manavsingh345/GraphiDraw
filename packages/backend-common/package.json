@@ -5,9 +5,17 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
     "./config": {
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./auth": {
+      "require": "./dist/auth.js",
+      "types": "./dist/auth.d.ts"
     }
   },
   "scripts": {
@@ -22,6 +30,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@clerk/backend": "^3.2.2",
     "@types/node": "^22.15.3"
   }
 }
