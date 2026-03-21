@@ -11,6 +11,7 @@ import bcrypt from "bcrypt";
 import cors from "cors";
 
 const app=express();
+const port = Number(process.env.PORT ?? 3001);
 app.use(express.json());
 app.use(cors())
 
@@ -295,4 +296,6 @@ app.get("/room/:slug",async(req,res)=>{
         });
     } 
 });
-app.listen(3001);
+app.listen(port, () => {
+    console.log(`HTTP backend listening on port ${port}`);
+});

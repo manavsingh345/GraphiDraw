@@ -4,7 +4,8 @@ import { WebSocketServer,WebSocket } from "ws"
 import { prismaClient } from "@repo/database/client";
 import { resolveClerkUser } from "@repo/backend-common/auth";
 
-const wss=new WebSocketServer({port:8080});
+const port = Number(process.env.PORT ?? 8080);
+const wss=new WebSocketServer({ port });
 
 //make ugly logic of one user is a part of multiple room at a time storing info in array.
 interface User {
@@ -42,7 +43,6 @@ async function checkUser(token:string): Promise<string | null>{
         return user.id;
     }catch(err){ 
         console.error("WS verifyToken error:", err, "Token received:", token ? token.substring(0, 20) + "..." : "empty");
-        require('fs').appendFileSync('ws-error.log', err?.toString() + '\\n');
         return null; 
     }
 }
@@ -241,4 +241,6 @@ wss.on('connection',async function connection(ws,request){
              return;
         }
     });   
-}) 
+})
+
+console.log(`WebSocket server listening on port ${port}`);
